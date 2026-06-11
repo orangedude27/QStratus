@@ -9,11 +9,13 @@ import {
   getTokenFromAuthorizationHeader,
   verifyAuthToken,
 } from "../lib/authToken.js"
-import { getUserById } from "./authController.js"
+import { getUserById } from "../lib/localStore.js"
 
 import "dotenv/config"
 
-const whitelist = process.env.WHITELISTED_USERS ? JSON.parse(process.env.WHITELISTED_USERS) : undefined;         //ensure your .env if structured WHITELISTED_USERS='["user1", "user2",..., "userN"]'
+const whitelist = process.env.WHITELISTED_USERS
+  ? JSON.parse(process.env.WHITELISTED_USERS)
+  : undefined // ensure your .env is structured as WHITELISTED_USERS='["user1", "user2"]'
 
 export function ControllerGetSessions(req: Request, res: Response) {
   res.json(Array.from(getSessions().values()))
@@ -49,7 +51,7 @@ export const ControllerCreateSession = async (req: Request, res: Response) => {
     return res.status(403).json({ error: "User not found" })
   }
 
-  if (whitelist && !whitelist.includes(user)){
+  if (whitelist && !whitelist.includes(user.Username)) {
     return res.status(403).json({ error: "Sorry, access is temporarily restricted" })
   }
 

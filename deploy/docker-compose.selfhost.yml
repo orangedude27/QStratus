@@ -1,0 +1,43 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./env/backend.env
+    ports:
+      - "4000:4000"
+    volumes:
+      - backend_data:/app/storage
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    env_file:
+      - ./env/frontend.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  stratusd:
+    build:
+      context: ../stratusd
+      dockerfile: Dockerfile
+    env_file:
+      - ./env/stratusd.env
+    # Host networking keeps QUIC/WebTransport UDP behavior simple.
+    network_mode: host
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/uinput:/dev/uinput
+    volumes:
+      - ../games/build:/games:ro
+      - /run/udev:/run/udev:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+
+volumes:
+  backend_data:

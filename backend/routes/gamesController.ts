@@ -1,7 +1,6 @@
-import { GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb"
 import type { Request, Response } from "express"
 
-import { dynamoDb } from "../server.js"
+import { getAllGames, getGameById } from "../lib/localStore.js"
 
 type GameItem = {
   GameID: string // Partition key
@@ -18,11 +17,8 @@ export const ControllerGetAll = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const params = {
-      TableName: "Games",
-    }
-    const games = await dynamoDb.send(new ScanCommand(params))
-    res.status(200).json(games.Items)
+    const games = await getAllGames()
+    res.status(200).json(games)
   } catch (err) {
     console.error("Error fetching games:", err)
     res.status(500).json({ error: "Failed to fetch games" })
@@ -39,18 +35,14 @@ export const ControllerGetByID = async (
     return
   }
   try {
-    const params = {
-      TableName: "Games",
-      Key: { GameID: id },
-    }
-    const game = await dynamoDb.send(new GetCommand(params))
+    const game = await getGameById(id)
 
-    if (!game.Item) {
+    if (!game) {
       res.status(404).json({ error: "Game not found" })
       return
     }
 
-    res.status(200).json(game.Item)
+    res.status(200).json(game)
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch game" })
   }

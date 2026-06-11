@@ -1,9 +1,15 @@
-import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb"
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "crypto"
+import { promisify } from "util"
 import { OAuth2Client } from "google-auth-library"
 import jwt from "jsonwebtoken"
 import type { Request, Response } from "express"
 
-import { dynamoDb } from "../server.js"
+import {
+  createUser,
+  getUserById,
+  getUserByUsername,
+  type UserRecord,
+} from "../lib/localStore.js"
 
 import type { Token } from "../lib/authToken.js"
 import {
@@ -11,13 +17,11 @@ import {
   verifyAuthToken,
 } from "../lib/authToken.js"
 
-interface User {
-  UserID: string
-  Username: string
-  Email: string
-}
+const scrypt = promisify(scryptCallback)
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+const googleClient = process.env.GOOGLE_CLIENT_ID
+  ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+  : null
 
 const getEnv = (key: string): string => {
   const value = process.env[key]
@@ -27,50 +31,12 @@ const getEnv = (key: string): string => {
   return value
 }
 
-export const getUserById = async (id: string): Promise<User | undefined> => {
-  const result = await dynamoDb.send(
-    new GetCommand({
-      TableName: "Users",
-      Key: {
-        UserID: id,
-      },
-    }),
-  )
-
-  return (result.Item as User) || undefined
-}
-
-const createUser = async (user: Partial<User>): Promise<User> => {
-  const { UserID, Username, Email } = user
-
-  const allUsersResult = await dynamoDb.send(
-    new ScanCommand({
-      TableName: "Users",
-    }),
-  )
-
-  const existingUsername = allUsersResult.Items?.find(
-    (item) => item.Username?.toLowerCase() === Username!.toLowerCase(),
-  )
-
-  if (existingUsername) {
-    throw new Error("Username already exists")
+const toPublicUser = (user: UserRecord) => {
+  return {
+    UserID: user.UserID,
+    Username: user.Username,
+    Email: user.Email,
   }
-
-  const newUser = {
-    UserID,
-    Username,
-    Email,
-  }
-
-  await dynamoDb.send(
-    new PutCommand({
-      TableName: "Users",
-      Item: newUser,
-    }),
-  )
-
-  return newUser as User
 }
 
 const createAuthToken = (tokenPayload: Token): string => {
@@ -79,11 +45,37 @@ const createAuthToken = (tokenPayload: Token): string => {
   })
 }
 
+const hashPassword = async (password: string) => {
+  const salt = randomBytes(16).toString("hex")
+  const key = (await scrypt(password, salt, 64)) as Buffer
+  return `${salt}:${key.toString("hex")}`
+}
+
+const verifyPassword = async (password: string, storedHash: string) => {
+  const [salt, keyHex] = storedHash.split(":")
+  if (!salt || !keyHex) {
+    return false
+  }
+
+  const derivedKey = (await scrypt(password, salt, 64)) as Buffer
+  const expectedKey = Buffer.from(keyHex, "hex")
+
+  if (derivedKey.length !== expectedKey.length) {
+    return false
+  }
+
+  return timingSafeEqual(derivedKey, expectedKey)
+}
+
 export const ControllerGoogleAuth = async (
   req: Request,
   res: Response,
 ): Promise<any> => {
   try {
+    if (!googleClient) {
+      return res.status(503).json({ error: "Google auth is not configured" })
+    }
+
     const { credential } = req.body
 
     if (!credential) {
@@ -128,11 +120,92 @@ export const ControllerGoogleAuth = async (
 
     return res.status(200).json({
       token: authToken,
-      user: existingUser,
+      user: toPublicUser(existingUser),
     })
   } catch (error) {
     console.error(error)
     return res.status(401).json({ error: "Google auth failed" })
+  }
+}
+
+export const ControllerRegisterLocal = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { username, password } = req.body as {
+      username?: string
+      password?: string
+    }
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" })
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 8 characters" })
+    }
+
+    const passwordHash = await hashPassword(password)
+    const createdUser = await createUser({
+      username,
+      email: "",
+      authProvider: "local",
+      passwordHash,
+    })
+
+    const token = createAuthToken({ userId: createdUser.UserID })
+
+    return res.status(201).json({
+      token,
+      user: toPublicUser(createdUser),
+    })
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message })
+  }
+}
+
+export const ControllerLoginLocal = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { username, password } = req.body as {
+      username?: string
+      password?: string
+    }
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" })
+    }
+
+    const user = await getUserByUsername(username)
+    if (!user || user.AuthProvider !== "local" || !user.PasswordHash) {
+      return res.status(401).json({ error: "Invalid username or password" })
+    }
+
+    const isValid = await verifyPassword(password, user.PasswordHash)
+    if (!isValid) {
+      return res.status(401).json({ error: "Invalid username or password" })
+    }
+
+    const token = createAuthToken({
+      userId: user.UserID,
+      email: user.Email || undefined,
+    })
+
+    return res.status(200).json({
+      token,
+      user: toPublicUser(user),
+    })
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message })
   }
 }
 
@@ -151,12 +224,13 @@ export const ControllerCreateUser = async (
     const decodedToken = verifyAuthToken(token)
 
     const createdUser = await createUser({
-      UserID: decodedToken.userId,
-      Username: username,
-      Email: decodedToken.email ?? "",
+      userId: decodedToken.userId,
+      username,
+      email: decodedToken.email ?? "",
+      authProvider: "google",
     })
 
-    return res.status(201).json({ user: createdUser })
+    return res.status(201).json({ user: toPublicUser(createdUser) })
   } catch (error: any) {
     return res.status(400).json({ error: error.message })
   }
@@ -175,7 +249,7 @@ export const ControllerGetUserByToken = async (
       return res.status(404).json({ error: "User not found" })
     }
 
-    return res.status(200).json({ user })
+    return res.status(200).json({ user: toPublicUser(user) })
   } catch (error: any) {
     return res.status(401).json({ error: error.message })
   }

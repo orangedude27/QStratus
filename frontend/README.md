@@ -14,7 +14,10 @@ used for rendering game audio and video.
     - `NEXT_PUBLIC_STATIC_EXPORT`: whether to enable static export mode (defaults to `false`). Handled by the `build:static` script.
     - `NEXT_PUBLIC_STRATUSD_PORT`: the WebTransport port on the streaming
       servers (Defaults to 443)
-    - `GOOGLE_CLIENT_ID`: the Google client ID used for OAuth (**required**)
+    - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`: optional Google client ID used for OAuth
+      sign-in button
+
+    Local username/password sign-in is available without Google configuration.
 
 2.  Install the required dependencies with `npm install`
 

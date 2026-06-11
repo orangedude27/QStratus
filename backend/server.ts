@@ -1,8 +1,6 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
 import { WebSocketServer } from "ws"
 import http from "node:http"
 
@@ -16,12 +14,6 @@ import "dotenv/config"
 
 const app = express()
 const PORT = process.env.PORT || 4000
-
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-west-2",
-})
-
-export const dynamoDb = DynamoDBDocumentClient.from(client)
 
 app.use(
   cors({

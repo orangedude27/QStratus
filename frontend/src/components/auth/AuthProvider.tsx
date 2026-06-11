@@ -31,6 +31,8 @@ type AuthContextValue = {
   token: string | null
   user: AuthUser | null
   signInWithGoogle: (credential: string) => Promise<GoogleSignInResult>
+  signInWithLocal: (username: string, password: string) => Promise<void>
+  registerLocal: (username: string, password: string) => Promise<void>
   createUsername: (username: string) => Promise<AuthUser>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -204,6 +206,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsUsername: !nextUser }
   }
 
+  const signInWithLocal = async (username: string, password: string) => {
+    setStatus("loading")
+
+    const response = await fetch(getBackendPath("/auth/local/login"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    })
+
+    const payload = await response.json().catch(() => null)
+
+    if (!response.ok) {
+      setStatus("unauthenticated")
+      throw new Error(getErrorMessage(payload, "Login failed"))
+    }
+
+    const nextToken = getTokenFromPayload(payload)
+    const nextUser = getUserFromPayload(payload)
+
+    if (!nextToken || !nextUser) {
+      setStatus("unauthenticated")
+      throw new Error("Invalid login response")
+    }
+
+    storeToken(nextToken)
+    setToken(nextToken)
+    setUser(nextUser)
+    setStatus("authenticated")
+  }
+
+  const registerLocal = async (username: string, password: string) => {
+    setStatus("loading")
+
+    const response = await fetch(getBackendPath("/auth/local/register"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    })
+
+    const payload = await response.json().catch(() => null)
+
+    if (!response.ok) {
+      setStatus("unauthenticated")
+      throw new Error(getErrorMessage(payload, "Registration failed"))
+    }
+
+    const nextToken = getTokenFromPayload(payload)
+    const nextUser = getUserFromPayload(payload)
+
+    if (!nextToken || !nextUser) {
+      setStatus("unauthenticated")
+      throw new Error("Invalid registration response")
+    }
+
+    storeToken(nextToken)
+    setToken(nextToken)
+    setUser(nextUser)
+    setStatus("authenticated")
+  }
+
   const createUsername = async (username: string): Promise<AuthUser> => {
     const activeToken = token ?? getStoredToken()
     if (!activeToken) {
@@ -264,6 +330,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         user,
         signInWithGoogle,
+        signInWithLocal,
+        registerLocal,
         createUsername,
         logout,
         refreshUser,

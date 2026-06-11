@@ -67,11 +67,11 @@ export default function SignInPageClient({
       <div className='mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.92fr]'>
         <section className='flex flex-col items-center text-center lg:items-start lg:text-left'>
           <h1 className='max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl'>
-            Stratus is currently available to Oregon State University students
+            Sign in to your self-hosted Stratus server
           </h1>
 
           <p className='mt-5 max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground md:text-xl'>
-            Sign in with your oregonstate.edu email to continue
+            Use a local username/password account, or continue with Google if it is configured.
           </p>
         </section>
 

@@ -25,12 +25,22 @@ export default function SignInPage({ searchParams }: Props) {
     return null
   }
 
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
+
+  const content = (
+    <div className='flex min-h-0 flex-1 flex-col'>
+      <Nav hideSearchBar />
+      <SignInPageContent searchParams={searchParams} />
+    </div>
+  )
+
+  if (!googleClientId) {
+    return content
+  }
+
   return (
-    <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID || ""}>
-      <div className='flex min-h-0 flex-1 flex-col'>
-        <Nav hideSearchBar />
-        <SignInPageContent searchParams={searchParams} />
-      </div>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {content}
     </GoogleOAuthProvider>
   )
 }

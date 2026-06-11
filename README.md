@@ -24,6 +24,11 @@ For more information, visit [playstratus.io](https://www.playstratus.io).
 
 ## Project Structure
 
+Project planning and agent guidance:
+
+- [`TODO.md`](TODO.md): active project task tracker
+- [`AGENTS.md`](AGENTS.md): context and workflow guidance for AI coding agents
+
 Stratus is composed of three main components: a cluster of streaming servers
 that run games, a web client that streams games from the streaming servers, and
 a coordination server that pairs clients with streaming servers. The source code
@@ -42,8 +47,15 @@ component locally for development. Refer to the [Stratus
 blog](https://www.playstratus.io/blogs/architecture) for more details on the
 architecture of Stratus.
 
+For a containerized single-node self-host setup with browser streaming, see
+[`deploy/README.md`](deploy/README.md).
+
 
 ## Deployment
+
+For local-only self-hosting (no AWS dependency) with Docker and optional Google
+or local username/password auth, use the setup guide in
+[`deploy/README.md`](deploy/README.md).
 
 To deploy an entire fully-featured Stratus instance from scratch, follow the
 instructions below. Alternatively, it is possible to run just the Stratus
