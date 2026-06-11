@@ -124,6 +124,8 @@ server, etc) by following the instructions [here][stratusd-setup].
 
 ## Project Status
 
-Stratus was developed by a team of Oregon State University students as a senior
-capstone project. It was released in May 2026, and is no longer actively
-developed or hosted publicly.
+Stratus was originally developed by a team of Oregon State University students
+as a senior capstone project, released in May 2026. The hosted public instance
+is no longer running, but the project is actively maintained as a self-hostable
+platform. Work is ongoing to support local-first deployment with Docker and GPU
+passthrough for fully remote browser-based gaming sessions.
