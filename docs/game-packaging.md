@@ -72,3 +72,51 @@ created interactively on the first run, such as user profiles, network settings,
 and display options.
 
 [bubblewrap]: https://github.com/containers/bubblewrap
+
+
+## Steam Game Discovery
+
+QStratus supports discovering and launching Steam games in addition to manually
+packaged games. The system uses a hybrid approach:
+
+### SteamCMD Worker
+
+An optional Docker service (`steamcmd`) downloads Steam games to a shared volume.
+It uses Valve's SteamCMD tool to download games specified by AppID. The worker
+is stateless and runs on-demand — users trigger downloads through the frontend
+UI.
+
+### Game Catalog
+
+Discovered Steam games are parsed from `appmanifest_*.acf` files in the Steam
+library directory. The backend enriches metadata using the free Steam Store API
+(SteamDB), fetching titles, descriptions, screenshots, and genres. Games are
+persisted in the local store with a `source` field indicating whether they are
+`steam`, `non-steam`, `manual`, or `seed`.
+
+### Hybrid Launch
+
+When a session is started, stratusd checks the game's source:
+
+- **Steam games**: Launched via the Steam client in headless mode (`steam
+  -no-browser -silent -applaunch <appid>`). The Steam client handles DRM
+  authentication and launches the game via Proton for Windows compatibility.
+
+- **Non-Steam games**: Launched directly via Wine using the existing `execvp`
+  mechanism (unchanged behavior).
+
+This means users don't need to configure anything — the system automatically
+detects the game type and uses the appropriate launch method.
+
+### Proton Integration
+
+Proton (Valve's Wine fork for gaming) is installed in the stratusd container
+and used automatically by the Steam client for Windows games. The Proton version
+can be configured via the `PROTON_VERSION` environment variable (defaults to
+latest stable).
+
+### Limitations
+
+Games with anti-cheat systems (Easy Anti-Cheat, BattlEye, Riot Vanguard) will
+not work in a headless/streaming environment. DRM-free Steam games and games
+with only Steam DRM work without issues.

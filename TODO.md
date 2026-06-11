@@ -25,7 +25,7 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | Status | Task | Notes |
 |--------|------|-------|
 | `[ ]` | Add rate-limiting and brute-force protections to local auth endpoints | `backend/routes/authController.ts` |
-| `[ ]` | Remove `// @ts-nocheck` from `backend/lib/localStore.ts` | Run `npm install` first to pull `@types/node` |
+| `[x]` | Remove `// @ts-nocheck` from `backend/lib/localStore.ts` | Done as part of Milestone 4 |
 | `[ ]` | Add schema validation for local store reads/writes | Prevent corrupt `store.json` from crashing backend |
 | `[ ]` | Harden stratusd container permissions (reduce `privileged` scope) | Requires testing each device binding |
 | `[ ]` | Add optional reverse proxy config examples (TLS + UDP) | Nginx/Caddy with QUIC/UDP pass-through notes |
@@ -43,6 +43,35 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | `[ ]` | Add route-level tests for `/auth/local/register` and `/auth/local/login` | |
 | `[ ]` | Add integration tests for local auth and Google auth fallback | |
 | `[ ]` | Keep `deploy/README.md` in sync with env/compose changes | Update on every infra change |
+
+---
+
+## Milestone 4 — Steam Game Discovery & Integration
+
+| Status | Task | Notes |
+|--------|------|-------|
+| `[x]` | Implement `backend/lib/steamScanner.ts` — scan Steam `appmanifest_*.acf` files | Parse appid, Name, installdir, SizeOnDisk |
+| `[x]` | Add `POST /games/scan` endpoint to trigger discovery | `backend/routes/gamesController.ts` |
+| `[x]` | Add `GET /games/discovered` endpoint for pre-catalog games | Games found but not yet added to catalog |
+| `[x]` | Add `createGame()` to `backend/lib/localStore.ts` | Persist discovered games to `store.json` |
+| `[x]` | Add frontend scan trigger + discovered games UI | `frontend/src/app/(protected)/browse/discover/page.tsx` |
+| `[x]` | Add `scanGames()` + `getDiscoveredGames()` to frontend actions | `frontend/src/lib/actions/games.ts` |
+| `[x]` | Add Steam library volume mount to compose stack | `deploy/docker-compose.selfhost.yml` + `STRATUSD_STEAM_PATH` env var |
+| `[~]` | Test Steam game launch through stratusd (Wine compatibility) | Requires Linux host with Steam library — code done, needs testing |
+| `[x]` | Integrate SteamDB API for rich metadata | Fetch descriptions, screenshots, genres, developers |
+| `[x]` | Cache enriched metadata in catalog to avoid repeated API calls | 24h TTL in-memory cache |
+| `[x]` | Add `POST /games`, `DELETE /games/:id` endpoints | Manual game management for non-Steam titles |
+| `[x]` | Add "Add Game" form to browse UI | Allow manual entry of non-Steam games |
+| `[x]` | Document Steam setup in `deploy/README.md` | Library path, Wine notes, DRM caveats |
+| `[x]` | Update `docs/game-packaging.md` with Steam discovery approach | |
+| `[x]` | Add SteamCMD worker service (optional, on-demand) | `deploy/steamcmd/` |
+| `[x]` | Add hybrid game launch in stratusd (Steam client vs direct exec) | `stratusd/SideCar/src/steam_launcher.c` |
+| `[x]` | Add Proton support to stratusd container | Auto-fetch latest, configurable via env var |
+| `[x]` | Add `IMPLEMENTATION_DETAILS.md` with detailed specs | |
+| `[ ]` | Wire up SteamCMD download trigger from frontend | Backend API exists, needs Docker API integration |
+| `[ ]` | Add download progress UI component | `frontend/src/components/download-progress.tsx` |
+| `[ ]` | Add Steam game catalog to heartbeat (appid/source fields) | stratusd reports game IDs, backend needs to map to appids |
+| `[ ]` | End-to-end test: scan → claim → download → launch | Requires full stack on Linux |
 
 ---
 

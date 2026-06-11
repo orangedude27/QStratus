@@ -36,8 +36,24 @@ services:
       - /dev/uinput:/dev/uinput
     volumes:
       - ../games/build:/games:ro
+      - steam_data:/data/steam
       - /run/udev:/run/udev:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
 
+  steamcmd:
+    build:
+      context: ../deploy/steamcmd
+      dockerfile: Dockerfile
+    environment:
+      - STEAM_USER=${STEAM_USER:-}
+      - STEAM_PASSWORD=${STEAM_PASSWORD:-}
+      - GAMES=${STEAMCMD_GAMES:-[]}
+    volumes:
+      - steam_data:/data/steam
+    restart: "no"
+    profiles:
+      - steam
+
 volumes:
   backend_data:
+  steam_data:

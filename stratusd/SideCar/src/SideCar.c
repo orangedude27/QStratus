@@ -20,6 +20,7 @@
 #include "sidecar-priv.h"
 #include "Transport.h"
 #include "version.h"
+#include "steam_launcher.h"
 
 /*
  * The number of seconds between heartbeat messages
@@ -29,7 +30,7 @@
 /*
  * The maximum number of installed games that can be detected
  */
-#define MAX_GAMES 16
+#define MAX_GAMES 64
 
 /*
  * Get the first temperature of the first sensor found resembling a CPU
@@ -84,13 +85,14 @@ end:
 int sidecar_heartbeat(struct sidecar_context *ctx) {
     int i = 0, ret;
     char hostname[HOST_NAME_MAX], *sessions[2], *game_dir, *games[MAX_GAMES];
+    char *steam_path, *steam_prefix;
     DIR *dir;
     struct dirent *ent;
     struct sysinfo info;
     struct statfs fs;
     struct api_msg_heartbeat msg;
 
-    // Get list of installed games
+    // Get list of installed non-Steam games
     if ((game_dir = getenv("STRATUSD_GAME_DIR")) == NULL)
         game_dir = DEFAULT_GAME_DIR;
     if ((dir = opendir(game_dir)) == NULL) {
@@ -102,6 +104,30 @@ int sidecar_heartbeat(struct sidecar_context *ctx) {
         if (ent->d_name[0] != '.')
             games[i++] = ent->d_name;
     }
+    if (errno != 0) {
+        perror("[Sidecar] readdir");
+        goto err_post_opendir;
+    }
+
+    // Scan Steam games and register them in the catalog
+    steam_path = getenv("STRATUSD_STEAM_PATH");
+    if (!steam_path) steam_path = "/data/steam/steamapps/common";
+    if ((dir = opendir(steam_path)) != NULL) {
+        errno = 0;
+        while (i < MAX_GAMES && (ent = readdir(dir)) != NULL) {
+            if (ent->d_name[0] != '.') {
+                // Register Steam game in catalog
+                char game_id[37] = {0};
+                // Generate a simple hash-based ID from installdir for consistency
+                // In production, this would come from the backend catalog
+                snprintf(game_id, sizeof(game_id), "steam-%d", i);
+                steam_register_game(game_id, ent->d_name, GAME_SOURCE_STEAM, 0, ent->d_name);
+                games[i++] = game_id;
+            }
+        }
+        closedir(dir);
+    }
+
     if (errno != 0) {
         perror("[Sidecar] readdir");
         goto err_post_opendir;

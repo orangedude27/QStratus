@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { access, mkdir, readFile, writeFile } from "fs/promises"
 import path from "path"
 import { randomUUID } from "crypto"
@@ -13,6 +12,9 @@ export type UserRecord = {
 
 export type GameRecord = {
   GameID: string
+  appid?: number
+  source: "steam" | "non-steam" | "manual" | "seed"
+  installdir?: string
   developer: string
   genres: string[]
   lDescript: string
@@ -153,4 +155,99 @@ export const createUser = async (input: {
   await persist()
 
   return user
+}
+
+export async function createGame(input: Partial<GameRecord>): Promise<GameRecord> {
+  await ensureLoaded()
+
+  const game: GameRecord = {
+    GameID: input.GameID || randomUUID(),
+    appid: input.appid,
+    source: input.source || "manual",
+    installdir: input.installdir,
+    developer: input.developer || "Unknown",
+    genres: input.genres || [],
+    lDescript: input.lDescript || "",
+    s3: input.s3 || [],
+    sDescript: input.sDescript || input.title || "",
+    title: input.title || "Unknown Game",
+  }
+
+  storeData!.games.push(game)
+  await persist()
+
+  return game
+}
+
+export async function addGameToCatalog(
+  discovered: {
+    appid: number
+    name: string
+    installdir: string
+    sizeOnDisk: number
+  },
+  metadata?: {
+    title?: string
+    description?: string
+    shortDescription?: string
+    genres?: string[]
+    developer?: string
+    publisher?: string
+    screenshots?: string[]
+    headerImage?: string
+    isFreeToPlay?: boolean
+  },
+): Promise<GameRecord> {
+  await ensureLoaded()
+
+  const existing = storeData!.games.find((g) => g.appid === discovered.appid)
+  if (existing) {
+    return existing
+  }
+
+  const game: GameRecord = {
+    GameID: randomUUID(),
+    appid: discovered.appid,
+    source: "steam",
+    installdir: discovered.installdir,
+    developer: metadata?.developer || metadata?.publisher || "Unknown",
+    genres: metadata?.genres || [],
+    lDescript: metadata?.description || "",
+    s3: metadata?.screenshots?.length
+      ? [metadata.screenshots[0]]
+      : metadata?.headerImage
+        ? [metadata.headerImage]
+        : [],
+    sDescript: metadata?.shortDescription || metadata?.title || discovered.name,
+    title: metadata?.title || discovered.name,
+  }
+
+  storeData!.games.push(game)
+  await persist()
+
+  return game
+}
+
+export async function getAllGamesWithSource(): Promise<GameRecord[]> {
+  await ensureLoaded()
+  return [...storeData!.games]
+}
+
+export async function deleteGame(gameId: string): Promise<boolean> {
+  await ensureLoaded()
+
+  const index = storeData!.games.findIndex((g) => g.GameID === gameId)
+  if (index === -1) {
+    return false
+  }
+
+  storeData!.games.splice(index, 1)
+  await persist()
+
+  return true
+}
+
+export async function getGameByAppId(appid: number): Promise<GameRecord | undefined> {
+  await ensureLoaded()
+  return storeData!.games.find((g) => g.appid === appid)
 }

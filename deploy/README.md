@@ -82,6 +82,43 @@ If `stratusd` heartbeats are reaching backend, frontend dashboard should show an
 - Sign in with local username/password or Google (if configured), browse games, and start a stream
 - For direct testing, use `/direct-connect` with `STRATUSD_IP` and `STRATUSD_PORT`
 
+## Steam Games
+
+QStratus supports both Steam games and non-Steam games with automatic detection:
+
+- **Steam games** are launched through the Steam client (headless mode) which handles DRM authentication and Proton compatibility
+- **Non-Steam games** are launched directly via Wine (existing behavior)
+
+### Enabling Steam
+
+1. Copy the SteamCMD environment file:
+   ```bash
+   cp deploy/env/steamcmd.env.example deploy/env/steamcmd.env
+   ```
+
+2. Edit `deploy/env/steamcmd.env`:
+   - Set `STEAM_USER` and `STEAM_PASSWORD` for your Steam account (or leave empty for anonymous/free-to-play games)
+   - Set `STEAMCMD_GAMES` to a JSON array of AppIDs if you want automatic downloads
+
+3. Start the stack with the Steam profile:
+   ```bash
+   docker compose --profile steam -f deploy/docker-compose.selfhost.yml up -d --build
+   ```
+
+4. Use the "Discover" page in the frontend to scan your Steam library and claim games.
+
+### Game Launch Behavior
+
+- When you launch a **Steam game**, stratusd automatically uses the Steam client to authenticate and launch the game via Proton
+- When you launch a **non-Steam game**, stratusd launches it directly via Wine (existing behavior)
+- You don't need to configure anything — the system detects the game type automatically
+
+### Anti-Cheat Limitations
+
+Games with anti-cheat systems (Easy Anti-Cheat, BattlEye, Riot Vanguard) will **not work** in a streaming environment. This includes games like Apex Legends, Fortnite, Escape from Tarkov, Rust, etc.
+
+DRM-free Steam games and games with only Steam DRM (Half-Life 2, Portal, Garry's Mod, Left 4 Dead 2, Team Fortress 2, etc.) work without issues.
+
 ## Notes and current limitations
 
 - `stratusd` is currently configured for one concurrent stream session per node.

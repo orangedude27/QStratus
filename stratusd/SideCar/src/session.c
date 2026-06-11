@@ -24,6 +24,7 @@
 #include "CapturePw.h"
 #include "Input.h"
 #include "Transport.h"
+#include "steam_launcher.h"
 
 /*
  * The maximum length of the filepath of a game, NULL terminator included
@@ -75,7 +76,8 @@ void session_teardown(struct session *session) {
     pthread_mutex_unlock(&audio_context->format_mutex);
 
     // send SIGTERM to the game's process tree
-    if (session->game_pid != 0) {
+    // game_pid == 1 means Steam game (already exited, no need to kill)
+    if (session->game_pid != 0 && session->game_pid != 1) {
         killpg(session->game_pid, 15);
     }
 
@@ -94,7 +96,8 @@ void session_teardown(struct session *session) {
     }
 
     // send kill to the game's process tree
-    if (session->game_pid != 0) {
+    // game_pid == 1 means Steam game (already exited, no need to kill)
+    if (session->game_pid != 0 && session->game_pid != 1) {
         killpg(session->game_pid, 9);
     }
 
@@ -124,14 +127,39 @@ void session_teardown(struct session *session) {
  * Launch a game
  *
  * Returns the PID of the child game process on success and -1 on failure.
+ * For Steam games, launches via Steam client and returns exit code.
  */
 static int session_launch_game(char *game_id, int width, int height) {
     int pid, devnull;
     char game_path[MAX_GAME_PATH], dimensions[MAX_DIMENSIONS_LEN];
     char *argv[2];
     char *game_dir;
+    char *steam_path, *steam_prefix;
+    game_entry_t *game_entry;
 
-    // Load game_dir config
+    // Check if this is a Steam game
+    game_entry = steam_find_game_by_id(game_id);
+    if (game_entry && game_entry->source == GAME_SOURCE_STEAM && game_entry->appid > 0) {
+        // Steam game: launch via Steam client
+        steam_path = getenv("STRATUSD_STEAM_PATH");
+        steam_prefix = getenv("STRATUSD_STEAM_PREFIX");
+        if (!steam_path) steam_path = "/data/steam/steamapps/common";
+        if (!steam_prefix) steam_prefix = "/data/steam/userdata";
+
+        fprintf(stderr, "[Sidecar] Launching Steam game: %s (AppID %d)\n",
+                game_entry->title, game_entry->appid);
+
+        // steam_launch_game blocks until game exits, returns exit code
+        int exit_code = steam_launch_game(game_entry->appid, steam_path, steam_prefix);
+        if (exit_code != 0) {
+            fprintf(stderr, "[Sidecar] Steam game exited with code %d\n", exit_code);
+            return -1;
+        }
+        // Return 1 to indicate game ran successfully (session_poll will detect exit)
+        return 1;
+    }
+
+    // Non-Steam game: existing direct exec behavior
     game_dir = getenv("STRATUSD_GAME_DIR");
     if (game_dir == NULL)
         game_dir = DEFAULT_GAME_DIR;
@@ -306,6 +334,12 @@ int session_poll(struct session *session) {
     }
 
     // Check if game has exited
+    // game_pid == 1 means Steam game already exited (steam_launch_game blocks)
+    if (session->game_pid == 1) {
+        fprintf(stderr, "[Sidecar] Detected Steam game exit\n");
+        session->game_pid = 0;
+        return 1;
+    }
     if (session->game_pid == 0 ||
         (ret = waitpid(session->game_pid, NULL, WNOHANG)) > 0) {
 
