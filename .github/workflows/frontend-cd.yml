@@ -12,11 +12,19 @@ on:
     paths:
       - "frontend/**"
       - "docs/**"
+      - "deploy/**"
       - ".github/workflows/frontend-cd.yml"
 
+# Self-hosted runner setup:
+#   1. Install the GitHub Actions runner on your Linux server.
+#   2. Place your real env files at $DEPLOY_ENV_DIR (repo variable, defaults to ~/qstratus-env).
+#      Expected files: frontend.env
+#   3. Ensure the runner user has access to Docker.
+
 jobs:
-  deploy:
+  deploy-vercel:
     runs-on: ubuntu-latest
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
     defaults:
       run:
         working-directory: frontend
@@ -58,3 +66,24 @@ jobs:
 
       - name: Deploy to Vercel
         run: pnpm dlx vercel@latest deploy --prebuilt --prod --token=$VERCEL_TOKEN
+
+  deploy-selfhost:
+    runs-on: [self-hosted, linux]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy env files from server
+        run: |
+          ENV_DIR="${{ vars.DEPLOY_ENV_DIR || '~/qstratus-env' }}"
+          mkdir -p deploy/env
+          cp "${ENV_DIR}/frontend.env" deploy/env/frontend.env
+
+      - name: Rebuild and restart frontend
+        run: |
+          docker compose -f deploy/docker-compose.selfhost.yml \
+            up -d --build --no-deps frontend
+
+      - name: Clean up old images
+        run: docker image prune -f

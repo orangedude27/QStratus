@@ -1,0 +1,56 @@
+name: stratusd CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "stratusd/**"
+      - ".github/workflows/stratusd-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "stratusd/**"
+      - ".github/workflows/stratusd-ci.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            cmake \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libswscale-dev \
+            libcjson-dev \
+            libcurl4-openssl-dev \
+            libdrm-dev \
+            libegl1-mesa-dev \
+            libevdev-dev \
+            libexpat1-dev \
+            libgles2-mesa-dev \
+            libicu-dev \
+            libopus-dev \
+            libpipewire-0.3-dev \
+            libsensors-dev \
+            pkg-config
+
+      - name: Configure CMake
+        working-directory: stratusd
+        run: cmake -DCMAKE_BUILD_TYPE=Release -B ./build
+
+      - name: Build
+        working-directory: stratusd
+        run: cmake --build ./build -j"$(nproc)"

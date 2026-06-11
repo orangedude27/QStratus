@@ -1,19 +1,19 @@
-name: Backend CD
+name: stratusd CD
 
 on:
   push:
     branches:
       - main
     paths:
-      - "backend/**"
+      - "stratusd/**"
       - "deploy/**"
-      - ".github/workflows/backend-cd.yml"
+      - ".github/workflows/stratusd-cd.yml"
 
 # Self-hosted runner setup:
 #   1. Install the GitHub Actions runner on your Linux server.
 #   2. Place your real env files at $DEPLOY_ENV_DIR (repo variable, defaults to ~/qstratus-env).
-#      Expected files: backend.env
-#   3. Ensure the runner user has access to Docker.
+#      Expected files: stratusd.env
+#   3. Ensure the runner user has access to Docker and /dev/dri, /dev/uinput.
 
 jobs:
   deploy:
@@ -27,12 +27,12 @@ jobs:
         run: |
           ENV_DIR="${{ vars.DEPLOY_ENV_DIR || '~/qstratus-env' }}"
           mkdir -p deploy/env
-          cp "${ENV_DIR}/backend.env" deploy/env/backend.env
+          cp "${ENV_DIR}/stratusd.env" deploy/env/stratusd.env
 
-      - name: Rebuild and restart backend
+      - name: Rebuild and restart stratusd
         run: |
           docker compose -f deploy/docker-compose.selfhost.yml \
-            up -d --build --no-deps backend
+            up -d --build --no-deps stratusd
 
       - name: Clean up old images
         run: docker image prune -f
