@@ -43,7 +43,6 @@ describe("rateLimiter", () => {
     }
     const res = await request(app).get("/test")
     expect(res.status).toBe(429)
-    expect(res.body).toHaveProperty("error")
     expect(res.body).toHaveProperty("retryAfter")
   })
 

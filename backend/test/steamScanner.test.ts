@@ -108,7 +108,7 @@ describe("scanSteamLibrary", () => {
   it("should exclude games not installed (StateFlags=0)", async () => {
     await setupLibrary({
       "appmanifest_730.acf": createAcfContent({ StateFlags: "0" }),
-      "appmanifest_440.acf": createAcfContent({ StateFlags: "4" }),
+      "appmanifest_440.acf": createAcfContent({ appid: "440", Name: "Team Fortress 2", StateFlags: "4" }),
     })
     const result = await scanSteamLibrary()
     expect(result).toHaveLength(1)
@@ -118,7 +118,7 @@ describe("scanSteamLibrary", () => {
   it("should skip malformed manifest files", async () => {
     await setupLibrary({
       "appmanifest_730.acf": "this is not valid acf content",
-      "appmanifest_440.acf": createAcfContent({ StateFlags: "4" }),
+      "appmanifest_440.acf": createAcfContent({ appid: "440", Name: "Team Fortress 2", StateFlags: "4" }),
     })
     const result = await scanSteamLibrary()
     expect(result).toHaveLength(1)

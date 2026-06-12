@@ -57,7 +57,6 @@ describe("GET /games", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     app = createApp()
   })
@@ -84,7 +83,6 @@ describe("GET /games/:id", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     app = createApp()
   })
@@ -114,7 +112,6 @@ describe("POST /games/scan", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
@@ -157,7 +154,6 @@ describe("GET /games/discovered", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
@@ -184,7 +180,6 @@ describe("POST /games/discovered/:appid/claim", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
@@ -231,7 +226,6 @@ describe("POST /games", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     app = createApp()
   })
@@ -275,7 +269,6 @@ describe("DELETE /games/:id", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    vi.resetModules()
     testEnv = setupTestEnv()
     app = createApp()
   })

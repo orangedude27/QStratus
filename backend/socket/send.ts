@@ -3,8 +3,13 @@ import { v4 as uuidv4 } from "uuid"
 import { findNodeByGame, getAllNodes } from "./node.js"
 import { createSession, deleteSession } from "./sessions.js"
 
-const pendingStarts = new Map<string, (confirm: ConfirmStart | null) => void>()
-const pendingStartSessions = new Map<string, string>()
+export const pendingStarts = new Map<string, (confirm: ConfirmStart | null) => void>()
+export const pendingStartSessions = new Map<string, string>()
+
+export function resetPendingStarts() {
+  pendingStarts.clear()
+  pendingStartSessions.clear()
+}
 
 interface ConfirmStart {
   type: string
@@ -63,7 +68,7 @@ export function startGameSession(
       height: startMessage.payload.height,
       userId: startMessage.payload.user_id,
       userName: startMessage.payload.user_name,
-    });
+    })
 
     setTimeout(() => {
       // timeout if node never responds

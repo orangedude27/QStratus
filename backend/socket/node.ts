@@ -15,9 +15,14 @@ interface NodeInfo {
   node_payload: NodePayload //we load payload here
 }
 
-const nodes = new Map<WebSocket, NodeInfo>()
+export let nodes = new Map<WebSocket, NodeInfo>()
 let lastClear = Date.now()
 const clearFrequency = 60 * 60 * 1000 //first 60 is for seconds 2nd for minutes, 1000 is to exit mil
+
+export function resetNodes() {
+  nodes.clear()
+  lastClear = Date.now()
+}
 
 function loadNode(ws: WebSocket, inName: string, payload: NodePayload) {
   //load node into nodes
@@ -82,6 +87,10 @@ export function deleteNode(ws: WebSocket) {
 }
 
 export function getAllNodes() {
+  return nodes
+}
+
+export function getNodesMap() {
   return nodes
 }
 

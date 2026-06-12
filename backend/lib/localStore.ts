@@ -57,7 +57,7 @@ const readSeedGames = async (): Promise<GameRecord[]> => {
       return []
     }
 
-    return parsed.filter((g) => typeof g?.GameID === "string")
+    return parsed.filter((g) => typeof g?.GameID === "string").map((g) => ({ ...g, source: "seed" as const }))
   } catch {
     return []
   }

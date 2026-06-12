@@ -3,11 +3,21 @@ import { fetchSteamDBMetadata, clearMetadataCache } from "../lib/steamdb.js"
 
 const realFetch = global.fetch
 
+let mockFn: ReturnType<typeof vi.fn>
+
 function mockFetch(response: any, ok = true) {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok,
-    json: () => Promise.resolve(response),
-  })
+  if (!mockFn) {
+    mockFn = vi.fn().mockResolvedValue({
+      ok,
+      json: () => Promise.resolve(response),
+    })
+    global.fetch = mockFn
+  } else {
+    mockFn.mockResolvedValue({
+      ok,
+      json: () => Promise.resolve(response),
+    })
+  }
 }
 
 describe("fetchSteamDBMetadata", () => {
@@ -18,6 +28,7 @@ describe("fetchSteamDBMetadata", () => {
 
   afterEach(() => {
     global.fetch = realFetch
+    mockFn = undefined as any
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
@@ -139,16 +150,16 @@ describe("fetchSteamDBMetadata", () => {
       },
     })
 
-    vi.useRealTimers()
     await fetchSteamDBMetadata(730)
-    vi.useFakeTimers()
     expect(global.fetch).toHaveBeenCalledTimes(2)
   })
 
   it("should handle fetch errors gracefully", async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"))
+    const errorFn = vi.fn().mockRejectedValue(new Error("Network error"))
+    global.fetch = errorFn
     const result = await fetchSteamDBMetadata(730)
     expect(result).toBeNull()
+    expect(errorFn).toHaveBeenCalledTimes(1)
   })
 
   it("should handle free-to-play games", async () => {
@@ -184,15 +195,18 @@ describe("fetchSteamDBMetadata", () => {
 })
 
 describe("clearMetadataCache", () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
     vi.useFakeTimers()
-    global.fetch = vi.fn().mockResolvedValue({
+    fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () =>
         Promise.resolve({
           "730": { success: true, data: { name: "CS2" } },
         }),
     })
+    global.fetch = fetchMock
   })
 
   afterEach(() => {
@@ -202,17 +216,19 @@ describe("clearMetadataCache", () => {
 
   it("should clear cached metadata", async () => {
     await fetchSteamDBMetadata(730)
-    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
 
     clearMetadataCache()
 
-    mockFetch({
-      "730": { success: true, data: { name: "CS2 Updated" } },
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          "730": { success: true, data: { name: "CS2 Updated" } },
+        }),
     })
 
-    vi.useRealTimers()
     await fetchSteamDBMetadata(730)
-    vi.useFakeTimers()
-    expect(global.fetch).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
