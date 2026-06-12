@@ -1,5 +1,7 @@
 FROM docker.io/node:alpine
 
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 RUN npm install -g corepack \

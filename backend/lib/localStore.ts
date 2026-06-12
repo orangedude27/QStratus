@@ -124,6 +124,11 @@ export const getUserByUsername = async (username: string): Promise<UserRecord | 
   return storeData!.users.find((user) => user.Username.trim().toLowerCase() === normalized)
 }
 
+export const hasUsers = async (): Promise<boolean> => {
+  await ensureLoaded()
+  return storeData!.users.length > 0
+}
+
 export const createUser = async (input: {
   userId?: string
   username: string

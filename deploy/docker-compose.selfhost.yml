@@ -9,6 +9,12 @@ services:
       - "4000:4000"
     volumes:
       - backend_data:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   frontend:
     build:
@@ -19,7 +25,14 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   stratusd:
     build:
@@ -39,6 +52,12 @@ services:
       - steam_data:/data/steam
       - /run/udev:/run/udev:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f stratusd || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   steamcmd:
     build:

@@ -29,6 +29,10 @@ app.use("/games", gamesRoutes)
 app.use("/auth", authRoutes)
 app.use("/play", playRoutes)
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() })
+})
+
 /*
 Socket, guide https://karlhadwen.medium.com/node-js-websocket-tutorial-real-time-chat-room-using-multiple-clients-44a8e26a953e
 */

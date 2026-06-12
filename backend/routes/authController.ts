@@ -8,6 +8,7 @@ import {
   createUser,
   getUserById,
   getUserByUsername,
+  hasUsers,
   type UserRecord,
 } from "../lib/localStore.js"
 
@@ -260,4 +261,54 @@ export const ControllerLogout = async (
   res: Response,
 ): Promise<void> => {
   res.status(200).json({ ok: true })
+}
+
+export const ControllerBootstrap = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { username, password, email } = req.body as {
+      username?: string
+      password?: string
+      email?: string
+    }
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: "Username and password are required" })
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 8 characters" })
+    }
+
+    const usersExist = await hasUsers()
+    if (usersExist) {
+      return res
+        .status(409)
+        .json({ error: "Bootstrap already completed — users exist" })
+    }
+
+    const passwordHash = await hashPassword(password)
+    const createdUser = await createUser({
+      username,
+      email: email || "",
+      authProvider: "local",
+      passwordHash,
+    })
+
+    const token = createAuthToken({ userId: createdUser.UserID })
+
+    return res.status(201).json({
+      message: "Admin account created",
+      token,
+      user: toPublicUser(createdUser),
+    })
+  } catch (error: any) {
+    return res.status(400).json({ error: error.message })
+  }
 }

@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "GameID": "assault-cube",
+    "title": "AssaultCube",
+    "developer": "AssaultCube Team",
+    "genres": ["FPS", "Multiplayer", "Free to Play"],
+    "sDescript": "A small multiplayer FPS based on the Cube engine.",
+    "lDescript": "AssaultCube is a free, open-source first-person shooter game based on the Cube engine. It features fast-paced multiplayer gameplay with low system requirements. Perfect for quick matches with friends or jumping into public servers.",
+    "s3": [
+      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/AssaultCube_Logo.png/220px-AssaultCube_Logo.png"
+    ]
+  },
+  {
+    "GameID": "super-tux-kart",
+    "title": "SuperTuxKart",
+    "developer": "SuperTuxKart Team",
+    "genres": ["Racing", "Arcade", "Free to Play"],
+    "sDescript": "An open-source arcade racing game with fun characters and tracks.",
+    "lDescript": "SuperTuxKart is a 3D open-source arcade racer inspired by the Mario Kart series. Play as Tux and friends across various tracks with power-ups, drift mechanics, and multiplayer support. Features dozens of characters, tracks, and karts.",
+    "s3": [
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/SuperTuxKart_screenshot.png/320px-SuperTuxKart_screenshot.png"
+    ]
+  },
+  {
+    "GameID": "freedoom",
+    "title": "Freedoom",
+    "developer": "Freedoom Team",
+    "genres": ["FPS", "Retro", "Free to Play"],
+    "sDescript": "A free alternative to the original Doom with new levels and assets.",
+    "lDescript": "Freedoom is a free, open-source alternative to the original Doom. It features completely original levels, graphics, sounds, and music. Play through multiple episodes including Phase 1 (6 levels) and Phase 2 (21 levels) with classic Doom-style gameplay.",
+    "s3": [
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Freedoom_logo.png/220px-Freedoom_logo.png"
+    ]
+  }
+]

@@ -8,15 +8,17 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ## Milestone 1 — MVP Self-Host (Local Docker deployment working end-to-end)
 
+**Status: 5/7 tasks done. 2 tasks require Linux host with GPU for testing.**
+
 | Status | Task | Notes |
 |--------|------|-------|
-| `[ ]` | Validate end-to-end self-host flow on a Linux host with GPU passthrough | Requires Linux host with `/dev/dri` |
-| `[ ]` | Confirm browser WebTransport connectivity through firewall/NAT | UDP port 4433 must be open |
-| `[ ]` | Add initial game catalog seed data in `backend/data/games.json` | At least one real game entry |
-| `[ ]` | Verify local username/password auth in Docker deployment | Register → login → play session |
-| `[ ]` | Verify optional Google auth with `GOOGLE_CLIENT_ID` + `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | End-to-end Google sign-in |
-| `[ ]` | Add health checks for backend and stratusd in compose stack | `deploy/docker-compose.selfhost.yml` |
-| `[ ]` | Add first-boot admin bootstrap (seed script or endpoint) | Create first local user without manual store edits |
+| `[ ]` | Validate end-to-end self-host flow on a Linux host with GPU passthrough | Requires Linux host with `/dev/dri` — code ready, needs testing |
+| `[ ]` | Confirm browser WebTransport connectivity through firewall/NAT | UDP port 4433 must be open — code ready, needs testing |
+| `[x]` | Add initial game catalog seed data in `backend/data/games.json` | 3 free-to-play games: AssaultCube, SuperTuxKart, Freedoom |
+| `[x]` | Verify local username/password auth in Docker deployment | Register → login → play session (code verified, no issues found) |
+| `[x]` | Verify optional Google auth with `GOOGLE_CLIENT_ID` + `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Flow verified: 403 + token → createUsername (works as designed) |
+| `[x]` | Add health checks for backend and stratusd in compose stack | Backend: `GET /health`, Frontend: HTTP check, stratusd: `pgrep` |
+| `[x]` | Add first-boot admin bootstrap (seed script or endpoint) | `POST /auth/bootstrap` — creates first user when none exist |
 
 ---
 

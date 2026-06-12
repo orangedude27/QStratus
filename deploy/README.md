@@ -57,8 +57,9 @@ Then edit values:
 The compose profile mounts `games/build` into the streaming daemon as `/games`.
 At minimum, put one packaged game there using scripts in `games/`.
 
-Also seed game catalog metadata in `backend/data/games.json` so browse/play pages
-can list your games.
+Game catalog metadata is pre-seeded in `backend/data/games.json` with three
+free-to-play games: AssaultCube, SuperTuxKart, and Freedoom. Add more games
+by editing this file or using the frontend's game management UI.
 
 ## 3) Bring up the stack
 
@@ -74,9 +75,27 @@ docker compose -f deploy/docker-compose.selfhost.yml logs -f backend
 docker compose -f deploy/docker-compose.selfhost.yml logs -f stratusd
 ```
 
+Check health status:
+```bash
+curl http://YOUR_HOST_IP:4000/health  # Backend health
+docker compose -f deploy/docker-compose.selfhost.yml ps  # Check health column
+```
+
 If `stratusd` heartbeats are reaching backend, frontend dashboard should show an active node.
 
-## 5) Connect from browser
+## 5) Create your admin account
+
+On first boot, no users exist. Create your admin account using the bootstrap endpoint:
+
+```bash
+curl -X POST http://YOUR_HOST_IP:4000/auth/bootstrap \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "your-strong-password", "email": "admin@example.com"}'
+```
+
+This endpoint only works when no users exist. After bootstrap, use the normal `/auth/local/register` and `/auth/local/login` endpoints.
+
+## 6) Connect from browser
 
 - Open `http://YOUR_HOST_IP:3000`
 - Sign in with local username/password or Google (if configured), browse games, and start a stream
@@ -118,6 +137,18 @@ QStratus supports both Steam games and non-Steam games with automatic detection:
 Games with anti-cheat systems (Easy Anti-Cheat, BattlEye, Riot Vanguard) will **not work** in a streaming environment. This includes games like Apex Legends, Fortnite, Escape from Tarkov, Rust, etc.
 
 DRM-free Steam games and games with only Steam DRM (Half-Life 2, Portal, Garry's Mod, Left 4 Dead 2, Team Fortress 2, etc.) work without issues.
+
+## Health Checks
+
+All services have health checks configured:
+- **Backend**: `GET /health` returns `{"status": "ok"}`
+- **Frontend**: HTTP check on port 3000
+- **stratusd**: Process check via `pgrep -f stratusd`
+
+Check status with:
+```bash
+docker compose -f deploy/docker-compose.selfhost.yml ps
+```
 
 ## Notes and current limitations
 

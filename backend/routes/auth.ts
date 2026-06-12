@@ -1,6 +1,7 @@
 import express from "express"
 
 import {
+  ControllerBootstrap,
   ControllerCreateUser,
   ControllerGetUserByToken,
   ControllerGoogleAuth,
@@ -11,6 +12,7 @@ import {
 
 const router = express.Router()
 
+router.post("/bootstrap", ControllerBootstrap)
 router.post("/google", ControllerGoogleAuth)
 router.post("/local/register", ControllerRegisterLocal)
 router.post("/local/login", ControllerLoginLocal)
