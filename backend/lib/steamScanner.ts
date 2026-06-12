@@ -1,8 +1,16 @@
 import { readdir, readFile, stat } from "fs/promises"
 import path from "path"
 
-const STEAM_LIBRARY_PATH =
+let _steamLibraryPath =
   process.env.STEAM_LIBRARY_PATH || "/data/steam/steamapps"
+
+export function setSteamLibraryPath(path: string): void {
+  _steamLibraryPath = path
+}
+
+function getSteamLibraryPath(): string {
+  return _steamLibraryPath
+}
 
 export type DiscoveredGame = {
   appid: number
@@ -13,7 +21,7 @@ export type DiscoveredGame = {
   stateFlags: number
 }
 
-function parseAcfFile(content: string): DiscoveredGame | null {
+export function parseAcfFile(content: string): DiscoveredGame | null {
   const result: Record<string, string> = {}
 
   const lines = content.split("\n")
@@ -36,7 +44,7 @@ function parseAcfFile(content: string): DiscoveredGame | null {
 
   return {
     appid,
-    name: result.name || `Unknown Game (${appid})`,
+    name: result.Name || `Unknown Game (${appid})`,
     installdir: result.installdir || "",
     sizeOnDisk,
     lastUpdated,
@@ -46,7 +54,7 @@ function parseAcfFile(content: string): DiscoveredGame | null {
 
 export async function scanSteamLibrary(): Promise<DiscoveredGame[]> {
   try {
-    const files = await readdir(STEAM_LIBRARY_PATH)
+    const files = await readdir(getSteamLibraryPath())
     const manifestFiles = files.filter((f) =>
       f.startsWith("appmanifest_") && f.endsWith(".acf"),
     )
@@ -55,7 +63,7 @@ export async function scanSteamLibrary(): Promise<DiscoveredGame[]> {
 
     for (const file of manifestFiles) {
       try {
-        const filePath = path.join(STEAM_LIBRARY_PATH, file)
+        const filePath = path.join(getSteamLibraryPath(), file)
         const content = await readFile(filePath, "utf8")
         const game = parseAcfFile(content)
 
@@ -77,7 +85,7 @@ export async function scanSteamLibrary(): Promise<DiscoveredGame[]> {
 export async function getInstalledGamePath(
   installdir: string,
 ): Promise<string | null> {
-  const commonPath = path.join(STEAM_LIBRARY_PATH, "common", installdir)
+  const commonPath = path.join(getSteamLibraryPath(), "common", installdir)
   try {
     await stat(commonPath)
     return commonPath

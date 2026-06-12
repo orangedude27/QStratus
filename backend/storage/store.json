@@ -90,39 +90,57 @@
       "Email": "",
       "AuthProvider": "local",
       "PasswordHash": "8b7b68c543c30cb5d1b107fbb374cca5:11ecbd8c2810c00205bf31aaeed97ece5ceafde38c88d014a765e5ad4d883b7a2818607db51107c92ab01d35055d4388d27242cc10565330df5b39e740cd6d27"
+    },
+    {
+      "UserID": "697e6c33-c86c-4bc9-81f5-e46ba5f99fc3",
+      "Username": "minimal",
+      "Email": "",
+      "AuthProvider": "google"
+    },
+    {
+      "UserID": "d297fc11-e3c7-4736-870d-a330ce1cd6fa",
+      "Username": "spaced",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "d6c96cf4-32b7-47d1-aefd-19dff9d29ef1",
+      "Username": "unique",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "8440df14-509e-4f06-a16c-293a5984b0ea",
+      "Username": "uuid-test",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "custom-id-123",
+      "Username": "custom",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "cc962651-aaf1-4805-a51f-9fd9126edb59",
+      "Username": "findme",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "dc24600c-66d9-4c5f-850c-7989e74636ef",
+      "Username": "MixedCase",
+      "Email": "",
+      "AuthProvider": "local"
+    },
+    {
+      "UserID": "0881ac49-f3d3-4a50-b02b-7bef086aaafc",
+      "Username": "test",
+      "Email": "",
+      "AuthProvider": "local"
     }
   ],
   "games": [
-    {
-      "GameID": "assault-cube",
-      "title": "AssaultCube",
-      "developer": "AssaultCube Team",
-      "genres": [
-        "FPS",
-        "Multiplayer",
-        "Free to Play"
-      ],
-      "sDescript": "A small multiplayer FPS based on the Cube engine.",
-      "lDescript": "AssaultCube is a free, open-source first-person shooter game based on the Cube engine. It features fast-paced multiplayer gameplay with low system requirements. Perfect for quick matches with friends or jumping into public servers.",
-      "s3": [
-        "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/AssaultCube_Logo.png/220px-AssaultCube_Logo.png"
-      ]
-    },
-    {
-      "GameID": "super-tux-kart",
-      "title": "SuperTuxKart",
-      "developer": "SuperTuxKart Team",
-      "genres": [
-        "Racing",
-        "Arcade",
-        "Free to Play"
-      ],
-      "sDescript": "An open-source arcade racing game with fun characters and tracks.",
-      "lDescript": "SuperTuxKart is a 3D open-source arcade racer inspired by the Mario Kart series. Play as Tux and friends across various tracks with power-ups, drift mechanics, and multiplayer support. Features dozens of characters, tracks, and karts.",
-      "s3": [
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/SuperTuxKart_screenshot.png/320px-SuperTuxKart_screenshot.png"
-      ]
-    },
     {
       "GameID": "freedoom",
       "title": "Freedoom",
@@ -137,6 +155,302 @@
       "s3": [
         "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Freedoom_logo.png/220px-Freedoom_logo.png"
       ]
+    },
+    {
+      "GameID": "25c57d21-7533-48b8-b8d4-11b9776034eb",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Default Game",
+      "title": "Default Game"
+    },
+    {
+      "GameID": "47f7ce36-d17b-4b8a-8afa-66f19d225c24",
+      "appid": 730,
+      "source": "steam",
+      "installdir": "csgo",
+      "developer": "Studio X",
+      "genres": [
+        "Action",
+        "Adventure"
+      ],
+      "lDescript": "A full description",
+      "s3": [
+        "https://img.com/1.jpg"
+      ],
+      "sDescript": "Short desc",
+      "title": "Full Game"
+    },
+    {
+      "GameID": "92ba23f8-d610-4869-bf43-4bc5e3598da0",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Find Me",
+      "title": "Find Me"
+    },
+    {
+      "GameID": "27cb7f43-ac58-434d-8f5f-4eb8b2100338",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 1",
+      "title": "Game 1"
+    },
+    {
+      "GameID": "d629fbe3-9a39-4e9b-aa96-de55ee13ff5c",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 2",
+      "title": "Game 2"
+    },
+    {
+      "GameID": "e625731d-282d-4538-a448-e5cd09e3ccb8",
+      "appid": 730,
+      "source": "steam",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Steam Game",
+      "title": "Steam Game"
+    },
+    {
+      "GameID": "ddaa7909-5329-49a4-87e9-777fc5c6d32d",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Manual Game",
+      "title": "Manual Game"
+    },
+    {
+      "GameID": "3125d339-8d79-4249-ad0d-2b4d8a64ed1b",
+      "appid": 440,
+      "source": "steam",
+      "installdir": "tf",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "TF2",
+      "title": "TF2"
+    },
+    {
+      "GameID": "1b0abac2-415b-4e51-baf7-182756b60aa9",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 1",
+      "title": "Game 1"
+    },
+    {
+      "GameID": "e304648e-ea79-4866-8fe7-13d0daee661b",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 2",
+      "title": "Game 2"
+    },
+    {
+      "GameID": "f84b6f57-5730-4a3d-8e90-4d8180634047",
+      "source": "manual",
+      "developer": "Indie Dev",
+      "genres": [
+        "Indie"
+      ],
+      "lDescript": "A great game",
+      "s3": [],
+      "sDescript": "My Game",
+      "title": "My Game"
+    },
+    {
+      "GameID": "4d5e6825-ee0f-4769-91c0-b7153821bfe1",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Simple",
+      "title": "Simple"
+    },
+    {
+      "GameID": "1003244f-c415-4284-add3-2bc577024108",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Default Game",
+      "title": "Default Game"
+    },
+    {
+      "GameID": "7d8d80c7-0cc3-495d-b4d9-9db73a57330d",
+      "appid": 730,
+      "source": "steam",
+      "installdir": "csgo",
+      "developer": "Studio X",
+      "genres": [
+        "Action",
+        "Adventure"
+      ],
+      "lDescript": "A full description",
+      "s3": [
+        "https://img.com/1.jpg"
+      ],
+      "sDescript": "Short desc",
+      "title": "Full Game"
+    },
+    {
+      "GameID": "2f0783c2-d405-44b8-93a0-c9156e990d3b",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Find Me",
+      "title": "Find Me"
+    },
+    {
+      "GameID": "ed63dd88-fd47-4a4e-8bd5-461d7342a9b0",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 1",
+      "title": "Game 1"
+    },
+    {
+      "GameID": "7351c77c-853b-4b48-ad20-6bd76a44af59",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 2",
+      "title": "Game 2"
+    },
+    {
+      "GameID": "8e1bee8b-0c86-4946-bd25-b230f439e4c4",
+      "appid": 730,
+      "source": "steam",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Steam Game",
+      "title": "Steam Game"
+    },
+    {
+      "GameID": "ec476a76-cea4-4588-98a2-6149b821be28",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Manual Game",
+      "title": "Manual Game"
+    },
+    {
+      "GameID": "8d2892cd-1323-4135-8bfd-a05f192ac2a6",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 1",
+      "title": "Game 1"
+    },
+    {
+      "GameID": "02da57d9-1143-4486-9395-25eb62e9965b",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Game 2",
+      "title": "Game 2"
+    },
+    {
+      "GameID": "1955c340-6a55-4add-aeed-b5cdaec436e7",
+      "source": "manual",
+      "developer": "Indie Dev",
+      "genres": [
+        "Indie"
+      ],
+      "lDescript": "A great game",
+      "s3": [],
+      "sDescript": "My Game",
+      "title": "My Game"
+    },
+    {
+      "GameID": "26630656-c4d3-4970-a242-9478f3c646b9",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Simple",
+      "title": "Simple"
+    },
+    {
+      "GameID": "21c62846-232f-4ea0-a591-a2fda2618d17",
+      "source": "manual",
+      "developer": "Indie Dev",
+      "genres": [
+        "Indie"
+      ],
+      "lDescript": "A great game",
+      "s3": [],
+      "sDescript": "My Game",
+      "title": "My Game"
+    },
+    {
+      "GameID": "fea3356a-44de-40ef-af4d-bd3e02b8b07d",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Simple",
+      "title": "Simple"
+    },
+    {
+      "GameID": "4fb9c20b-0b3c-4ae8-ba46-ffd83431a224",
+      "source": "manual",
+      "developer": "Indie Dev",
+      "genres": [
+        "Indie"
+      ],
+      "lDescript": "A great game",
+      "s3": [],
+      "sDescript": "My Game",
+      "title": "My Game"
+    },
+    {
+      "GameID": "a37eb2ef-7387-4b76-bbf4-9e67a03c3dce",
+      "source": "manual",
+      "developer": "Unknown",
+      "genres": [],
+      "lDescript": "",
+      "s3": [],
+      "sDescript": "Simple",
+      "title": "Simple"
     }
   ]
 }

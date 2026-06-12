@@ -81,6 +81,23 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ---
 
+## Test Suite — Remaining Work
+
+**Current coverage: 134 tests across 8 files, all passing.**
+
+| Status | Task | File | Notes |
+|--------|------|------|-------|
+| `[ ]` | Test `downloadController.ts` — trigger + status endpoints | `backend/test/downloadController.test.ts` | 2022 status, error cases, invalid appids |
+| `[ ]` | Test `ControllerBootstrap` — first-boot admin creation | `backend/test/auth.test.ts` (append) | 409 when users exist, validation, success |
+| `[ ]` | Test `ControllerGetAuthConfig` — returns enabled flags | `backend/test/auth.test.ts` (append) | googleEnabled, localEnabled, whitelistEnabled |
+| `[ ]` | Test `dockerTrigger.ts` — Docker API module | `backend/test/dockerTrigger.test.ts` | triggerDownload, getDownloadStatus, error handling |
+| `[ ]` | Test `steam_launcher.c` — Steam client launch logic | `stratusd/test/steam_launcher.test.c` | Requires C test framework (cmocka) |
+| `[ ]` | Test `download-progress.tsx` — frontend progress UI | `frontend/tests/download-progress.test.tsx` | Requires React Testing Library |
+| `[ ]` | Test `discover/page.tsx` — discover page flow | `frontend/tests/discover-page.test.tsx` | Requires React Testing Library |
+| `[ ]` | Test `steamcmd/entrypoint.sh` — download script | `deploy/steamcmd/test/entrypoint.test.sh` | Requires shellcheck/shunit2 |
+
+---
+
 ## Backlog / Nice-to-Have
 
 | Status | Task | Notes |

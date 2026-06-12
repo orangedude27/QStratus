@@ -46,6 +46,11 @@ export const rateLimiter = (
         count: 1,
         resetTime: now + windowMs,
       })
+      res.set({
+        "X-RateLimit-Limit": String(max),
+        "X-RateLimit-Remaining": String(max - 1),
+        "X-RateLimit-Reset": String(now + windowMs),
+      })
       next()
       return
     }
