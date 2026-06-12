@@ -24,16 +24,18 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ## Milestone 2 — Hardening (Safe to expose on a home network)
 
+**Status: 6/7 tasks done. 1 task requires actual Linux testing.**
+
 | Status | Task | Notes |
 |--------|------|-------|
-| `[ ]` | Add rate-limiting and brute-force protections to local auth endpoints | `backend/routes/authController.ts` |
+| `[x]` | Add rate-limiting and brute-force protections to local auth endpoints | `backend/lib/rateLimiter.ts` — login: 20/15min, register: 5/hr, general: 100/15min |
 | `[x]` | Remove `// @ts-nocheck` from `backend/lib/localStore.ts` | Done as part of Milestone 4 |
-| `[ ]` | Add schema validation for local store reads/writes | Prevent corrupt `store.json` from crashing backend |
+| `[x]` | Add schema validation for local store reads/writes | `backend/lib/storeValidation.ts` — validates on load, auto-recovers corrupt data |
 | `[ ]` | Harden stratusd container permissions (reduce `privileged` scope) | Requires testing each device binding |
-| `[ ]` | Add optional reverse proxy config examples (TLS + UDP) | Nginx/Caddy with QUIC/UDP pass-through notes |
-| `[ ]` | Document vendor-specific GPU passthrough guidance (AMD/Intel/NVIDIA) | In `deploy/README.md` |
-| `[ ]` | Add troubleshooting section for auth/session failures | |
-| `[ ]` | Add troubleshooting section for WebTransport/UDP failures | |
+| `[x]` | Add optional reverse proxy config examples (TLS + UDP) | `deploy/nginx/qstratus.conf`, `deploy/caddy/Caddyfile`, `deploy/REVERSE_PROXY.md` |
+| `[x]` | Document vendor-specific GPU passthrough guidance (AMD/Intel/NVIDIA) | In `deploy/README.md` |
+| `[x]` | Add troubleshooting section for auth/session failures | In `deploy/README.md` — covers login, bootstrap, session, rate limiting |
+| `[x]` | Add troubleshooting section for WebTransport/UDP failures | In `deploy/README.md` — covers QUIC, latency, audio, input issues |
 
 ---
 

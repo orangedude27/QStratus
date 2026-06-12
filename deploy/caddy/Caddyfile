@@ -1,0 +1,46 @@
+# Caddy reverse proxy configuration for QStratus
+# Place this file at /etc/caddy/Caddyfile
+
+your-domain.com {
+    # Automatic HTTPS will handle SSL certificates via Let's Encrypt
+
+    # Frontend (Next.js)
+    reverse_proxy localhost:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection "{http.request.header.Connection}"
+    }
+
+    # Backend API
+    reverse_proxy /api/* localhost:4000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Backend WebSocket (for stratusd nodes)
+    reverse_proxy /ws localhost:4000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Upgrade {http.request.header.Upgrade}
+        header_up Connection "{http.request.header.Connection}"
+    }
+}
+
+# UDP pass-through for WebTransport (QUIC)
+# Caddy handles QUIC automatically when listening on :4433
+# Note: Caddy does not support UDP proxying directly.
+# For QUIC/WebTransport, you need to either:
+# 1. Expose stratusd directly on port 4433 with its own TLS cert
+# 2. Use a dedicated QUIC proxy like caddy-quic or ngtcp2
+# 3. Use iptables rules to forward UDP traffic
+
+# Example iptables rules for UDP forwarding:
+# sudo iptables -t nat -A PREROUTING -p udp --dport 4433 -j REDIRECT --to-port 4433
+# sudo ip6tables -t nat -A PREROUTING -p udp --dport 4433 -j REDIRECT --to-port 4433

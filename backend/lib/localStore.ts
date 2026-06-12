@@ -2,6 +2,8 @@ import { access, mkdir, readFile, writeFile } from "fs/promises"
 import path from "path"
 import { randomUUID } from "crypto"
 
+import { validateStoreData, validateUserRecord, validateGameRecord } from "./storeValidation.js"
+
 export type UserRecord = {
   UserID: string
   Username: string
@@ -70,9 +72,13 @@ const persist = async () => {
   await mkdir(dir, { recursive: true })
 
   // Serialize writes to avoid store corruption during concurrent requests.
-  writeQueue = writeQueue.then(() =>
-    writeFile(dataFilePath, JSON.stringify(storeData, null, 2), "utf8"),
-  )
+  writeQueue = writeQueue.then(async () => {
+    try {
+      await writeFile(dataFilePath, JSON.stringify(storeData, null, 2), "utf8")
+    } catch (err) {
+      console.error("Failed to persist store:", err)
+    }
+  })
 
   await writeQueue
 }
@@ -95,7 +101,49 @@ const ensureLoaded = async () => {
   }
 
   const raw = await readFile(dataFilePath, "utf8")
-  const parsed = JSON.parse(raw) as Partial<StoreData>
+  let parsed: Partial<StoreData>
+
+  try {
+    parsed = JSON.parse(raw) as Partial<StoreData>
+  } catch {
+    console.error("Failed to parse store.json, creating fresh store")
+    storeData = {
+      users: [],
+      games: await readSeedGames(),
+    }
+    await persist()
+    return
+  }
+
+  const validationResult = validateStoreData(parsed)
+  if (!validationResult.valid) {
+    console.error("Store validation failed, attempting recovery:")
+    for (const error of validationResult.errors) {
+      console.error(`  - ${error}`)
+    }
+
+    storeData = {
+      users: Array.isArray(parsed.users) ? parsed.users.filter((u) => {
+        const result = validateUserRecord(u)
+        if (!result.valid) {
+          console.error(`  Skipping invalid user: ${result.errors.join(", ")}`)
+          return false
+        }
+        return true
+      }) : [],
+      games: Array.isArray(parsed.games) ? parsed.games.filter((g) => {
+        const result = validateGameRecord(g)
+        if (!result.valid) {
+          console.error(`  Skipping invalid game: ${result.errors.join(", ")}`)
+          return false
+        }
+        return true
+      }) : [],
+    }
+
+    await persist()
+    return
+  }
 
   storeData = {
     users: Array.isArray(parsed.users) ? parsed.users : [],

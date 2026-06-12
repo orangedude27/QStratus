@@ -150,6 +150,242 @@ Check status with:
 docker compose -f deploy/docker-compose.selfhost.yml ps
 ```
 
+## GPU Passthrough Guide
+
+stratusd requires GPU access for video encoding. The compose file passes `/dev/dri` to the container. Here's vendor-specific guidance:
+
+### NVIDIA
+
+1. Install NVIDIA drivers on the host:
+   ```bash
+   sudo apt install nvidia-driver-550  # or latest stable
+   ```
+
+2. Install NVIDIA Container Toolkit:
+   ```bash
+   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+   curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+   sudo apt update
+   sudo apt install nvidia-container-toolkit
+   sudo nvidia-ctk runtime configure --runtime=docker
+   sudo systemctl restart docker
+   ```
+
+3. Verify GPU access:
+   ```bash
+   docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+   ```
+
+4. The compose file already includes `/dev/dri` — no changes needed.
+
+### AMD
+
+1. Install AMD drivers (usually pre-installed on modern Linux distros):
+   ```bash
+   sudo apt install mesa-vulkan-drivers amdgpu-core
+   ```
+
+2. Verify GPU access:
+   ```bash
+   ls -la /dev/dri/
+   # Should show: card0, renderD128, etc.
+   ```
+
+3. Add your user to the `video` and `render` groups:
+   ```bash
+   sudo usermod -aG video,youruser $USER
+   sudo usermod -aG render,youruser $USER
+   ```
+
+4. The compose file already includes `/dev/dri` — no changes needed.
+
+### Intel
+
+1. Install Intel GPU drivers:
+   ```bash
+   sudo apt install intel-media-va-driver-non-free vainfo
+   ```
+
+2. Verify GPU access:
+   ```bash
+   vainfo
+   # Should show supported VA APIs
+   ```
+
+3. The compose file already includes `/dev/dri` — no changes needed.
+
+### Testing GPU Acceleration
+
+Before running the full stack, test GPU encoding:
+
+```bash
+# Test with a simple FFmpeg encode
+docker run --rm -v /dev/dri:/dev/dri --device /dev/dri ubuntu:24.04 \
+  ffmpeg -f lavfi -i testsrc=duration=5:size=320x240:rate=30 \
+  -c:v h264_v4l2m2m -f null -
+```
+
+If this fails, check:
+- Host GPU drivers are installed and working
+- `/dev/dri` has correct permissions
+- You're using a compatible GPU (see compatibility notes below)
+
+### GPU Compatibility Notes
+
+| GPU Type | Status | Notes |
+|----------|--------|-------|
+| NVIDIA GTX 10xx+ | Supported | Requires NVIDIA Container Toolkit |
+| NVIDIA RTX 20xx/30xx/40xx | Supported | Full hardware encoding support |
+| AMD RX 4xx+ | Supported | Uses VAAPI/MediaCodec |
+| AMD APU (Ryzen) | Supported | Integrated graphics work |
+| Intel HD 630+ | Supported | Uses QSV/MediaCodec |
+| Intel UHD 630+ | Supported | Full hardware encoding |
+| Older GPUs (pre-2016) | Limited | May lack hardware encoding |
+
+### Troubleshooting GPU Issues
+
+```bash
+# Check if GPU is accessible from host
+ls -la /dev/dri/
+vainfo  # AMD/Intel
+nvidia-smi  # NVIDIA
+
+# Check Docker GPU access
+docker run --rm --device /dev/dri nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+
+# Check stratusd logs for encoding errors
+docker compose -f deploy/docker-compose.selfhost.yml logs -f stratusd
+```
+
+## Troubleshooting: Auth & Session Failures
+
+### "Invalid username or password" on login
+
+- Verify the user exists by checking the bootstrap was completed
+- Check backend logs: `docker compose logs backend`
+- Ensure `AUTH_SECRET` is set in `backend.env`
+- Passwords must be at least 8 characters
+
+### "User not found" after Google sign-in
+
+- Google auth returns a 403 with a token if the user doesn't exist in the local store
+- You must create the user first via `/auth/create` with the Google token
+- Or use local auth (`/auth/local/register`) for self-hosted deployments
+
+### "Bootstrap already completed" error
+
+- The bootstrap endpoint only works when no users exist
+- After creating the first user, use normal login/register endpoints
+- To reset, delete the store file: `rm backend_data/store.json` (or remove the Docker volume)
+
+### Session fails to start / "No node available"
+
+- Check that stratusd is running: `docker compose ps`
+- Verify stratusd heartbeats are reaching backend: `docker compose logs stratusd`
+- Check that the game exists in `/games/build` on the host
+- Verify the game is listed in the catalog: `curl http://localhost:4000/games`
+
+### "Session timed out" error
+
+- stratusd has a 10-second timeout waiting for node confirmation
+- Check network connectivity between backend and stratusd
+- Verify `STRATUSD_BACKEND_URL` in `stratusd.env` is correct
+- Check stratusd logs for errors: `docker compose logs stratusd`
+
+### Rate limiting errors (429 Too Many Requests)
+
+- Login: 20 attempts per 15 minutes per username
+- Registration: 5 attempts per hour per username
+- Other endpoints: 100 requests per 15 minutes
+- Wait for the retry-after time specified in the response headers
+
+## Troubleshooting: WebTransport & UDP Failures
+
+### Browser shows "Connection failed" or "Timeout"
+
+1. **Check firewall**: UDP port 4433 must be open
+   ```bash
+   # Check if port is open
+   sudo ufw status | grep 4433
+   # Or test from another machine
+   nc -uvz YOUR_HOST_IP 4433
+   ```
+
+2. **Verify stratusd is listening**:
+   ```bash
+   docker compose -f deploy/docker-compose.selfhost.yml logs stratusd | grep "Listening"
+   ```
+
+3. **Check NAT/Router**: If accessing from outside your LAN, you need port forwarding for UDP 4433
+
+4. **Test WebTransport connectivity**:
+   - Open browser DevTools (F12)
+   - Go to Console tab
+   - Look for WebTransport errors
+   - Check Network tab for failed connections
+
+### "QUIC connection failed"
+
+- Ensure your browser supports WebTransport (Chrome 107+, Edge 107+, Firefox with flags)
+- Check that UDP 4433 is not blocked by ISP or firewall
+- Try accessing from localhost first to rule out network issues
+
+### High latency or poor video quality
+
+1. **Check bandwidth**:
+   ```bash
+   # Test download speed
+   speedtest-cli
+   # Or use browser devtools Network tab
+   ```
+
+2. **Check GPU encoding**:
+   ```bash
+   docker compose -f deploy/docker-compose.selfhost.yml logs stratusd | grep -i "encode\|error"
+   ```
+
+3. **Reduce resolution**: Try lower dimensions in the play page
+
+4. **Check CPU load**: High CPU can cause encoding bottlenecks
+   ```bash
+   docker stats stratusd
+   ```
+
+### Video plays but no audio
+
+- Check browser audio permissions
+- Verify PipeWire is running on the host
+- Check stratusd logs for audio encoding errors
+
+### Input not working (controller/mouse)
+
+- Verify `/dev/uinput` is accessible: `ls -la /dev/uinput`
+- Check browser gamepad API support: `navigator.getGamepads()`
+- Ensure controller is connected and recognized: `jstest /dev/input/js0`
+
+### General Debugging Commands
+
+```bash
+# View all logs
+docker compose -f deploy/docker-compose.selfhost.yml logs
+
+# View specific service logs
+docker compose -f deploy/docker-compose.selfhost.yml logs -f backend
+docker compose -f deploy/docker-compose.selfhost.yml logs -f stratusd
+
+# Check service status
+docker compose -f deploy/docker-compose.selfhost.yml ps
+
+# Restart all services
+docker compose -f deploy/docker-compose.selfhost.yml restart
+
+# Rebuild and restart
+docker compose -f deploy/docker-compose.selfhost.yml up -d --build
+
+# Check container resource usage
+docker stats
+```
+
 ## Notes and current limitations
 
 - `stratusd` is currently configured for one concurrent stream session per node.
