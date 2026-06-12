@@ -1,11 +1,18 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { useAuth } from "@/components/auth/AuthProvider"
+import { getBackendPath } from "@/lib/backend/getBackendPath"
 
 import SignInButton from "./SignInButton"
+
+type AuthConfig = {
+  googleEnabled: boolean
+  whitelistEnabled: boolean
+  localEnabled: boolean
+}
 
 type SignInPageClientProps = {
   error: string | null
@@ -36,6 +43,8 @@ export default function SignInPageClient({
 }: Readonly<SignInPageClientProps>) {
   const router = useRouter()
   const { status } = useAuth()
+  const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null)
+  const [configError, setConfigError] = useState(false)
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -47,9 +56,25 @@ export default function SignInPageClient({
     }
   }, [router, status])
 
+  useEffect(() => {
+    if (status !== "unauthenticated") return
+
+    fetch(getBackendPath("/auth/config"))
+      .then((res) => res.json())
+      .then((config) => {
+        setAuthConfig(config)
+      })
+      .catch(() => {
+        setConfigError(true)
+      })
+  }, [status])
+
   if (status !== "unauthenticated") {
     return <SessionStatus />
   }
+
+  const googleAvailable = authConfig?.googleEnabled ?? !configError
+  const localAvailable = authConfig?.localEnabled ?? true
 
   return (
     <main className='relative flex min-h-0 flex-1 items-center justify-center overflow-x-hidden overflow-y-auto bg-background px-4 py-10 sm:px-6 lg:px-8'>
@@ -71,8 +96,29 @@ export default function SignInPageClient({
           </h1>
 
           <p className='mt-5 max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground md:text-xl'>
-            Use a local username/password account, or continue with Google if it is configured.
+            {googleAvailable
+              ? "Sign in with your local account or continue with Google."
+              : "Sign in with your local account."}
           </p>
+
+          {!googleAvailable && (
+            <div className='mt-4 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-300'>
+              <svg
+                className='h-4 w-4 flex-shrink-0'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z'
+                />
+              </svg>
+              <span>Google sign-in is not configured on this server</span>
+            </div>
+          )}
         </section>
 
         <section className='w-full'>
@@ -81,6 +127,11 @@ export default function SignInPageClient({
               <h1 className='mt-2 text-3xl font-bold tracking-tight md:text-4xl'>
                 Sign In
               </h1>
+              <p className='mt-1 text-sm text-muted-foreground'>
+                {googleAvailable
+                  ? "Use your local account or Google"
+                  : "Use your local account"}
+              </p>
             </div>
 
             <SignInButton />

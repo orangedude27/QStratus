@@ -1,0 +1,142 @@
+{
+  "users": [
+    {
+      "UserID": "27217cf9-076f-414d-8b7a-fefc24c54ee1",
+      "Username": "integration_user",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "c05e4decb7d7a6d4a239600fbef6f924:2f5af20569d443d2b126952b0f803634cedf3e2c095342dba4cf7f4da845bf932cd4183adb86889d0bb3434182209ebddfe4f7d59be15f401dad0230e471c0c1"
+    },
+    {
+      "UserID": "9b668e4b-752f-48bc-8b8e-fd31fb4e7882",
+      "Username": "secure_user",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "f9226bfa13dfbac296899919dc96032b:4e266bd858888ac8aaecf6c9eae15da97868b8e26615d725704567be4d24f79006605d36037579f3096077766a4e8d2602e5829a17a46635ed8927de54b8d5d7"
+    },
+    {
+      "UserID": "81d16739-7f47-4362-8d04-19bb3397db7a",
+      "Username": "CaseSensitive",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "6c404c3eafbabfa6f227c19af4a12d9f:49d2b5de03cf2da8b16aaba36e65d46a98bbaf28108080b8681e38ca2928696641d9019c3b8f79245cb3aad7704dd869bd2ac71dec5f04b3784cd2e974c39d76"
+    },
+    {
+      "UserID": "84a8f9fc-3914-4355-9a39-831f847a14ed",
+      "Username": "regular_user",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "edbd531cecbb92da4e5d4b0df0a45ea8:16159687a3138d8fc0af8aecc93249d392a89a129f3432554c63f4f2d344310afd77985bdd8a7b3d2b5763264fbb35680b5977aa2c6feddb2840a9511a2a23fe"
+    },
+    {
+      "UserID": "4153aa4b-ce53-4093-b76e-96ea5e4ac701",
+      "Username": "reg_user_0",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "56e1750f66fd5dce6184edd0f56b1e6a:e7c6f9073e65ed4fdfc8fc9bdfbed6972aae5b7f682b51042c1eedd62ff71846cb67aa005cdf6dd7d1fe44b63e237838cd1f36226b8c379912bd229aae8dbf46"
+    },
+    {
+      "UserID": "7c1cbf76-1c41-4d58-9441-6634de5593f8",
+      "Username": "reg_user_1",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "a8be8b93096e13817bf1cd0f7298d41b:6c97282e464ad376c3a3409135d74866437b6c4393a6f038e8bd4ca87d01c1da7f157e77c28350b4104d6e83b753e921a9665a7dbc0babf03f455e74ceb3e477"
+    },
+    {
+      "UserID": "e4957a75-09d2-4100-be81-e75a709b0f6b",
+      "Username": "reg_user_2",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "e72bc8bad739300cc44761b678f29599:8501685e2eaa544c8a3cf33b4ef8c311441857061d8cc4554381da536760d29b440bba4d7b57e3e37d7771b58c65304231071b80d650374a980a03b85d7db306"
+    },
+    {
+      "UserID": "8c44ed24-92d2-4cb8-82c4-879087b00159",
+      "Username": "reg_user_3",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "dd0b345685b9a4ee50234017f50a69fe:b4944ebeaf99b48470087c6c14275faa6430732d88f5ac0c3b3499a5b28605699c2c3238ee9b1c4765cc0b783c72502719dc171da6aba45531dd592dbeacd14d"
+    },
+    {
+      "UserID": "e7beee42-1c98-49ec-9728-3af986311fa6",
+      "Username": "reg_user_4",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "07ffcbb5f5bc528283dea152222eb209:8f333e95de8e069869bcf64cd0a5eb2a3b73c480c19b98bd5f508a4037a0901fb01ebdeebb4177a99d2369b69c6c83043611903942a5621a5430c71e8560a895"
+    },
+    {
+      "UserID": "8da324bd-7824-4490-a5c3-69d68e021344",
+      "Username": "reg_limited",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "26379cfe529adee6eddd7fce79718cab:34577877d336be05a61bdcb8aa0c2d941d91225def9d925146edab83b755873bcbf29b74efef4656df4882537de7d6b52f4dad5f04bc9653f5ef0396a4b62702"
+    },
+    {
+      "UserID": "8ef775bb-3d10-4870-a829-8ffe8955f315",
+      "Username": "testuser",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "a8eff04803dc52085bbe045bbe2b425c:542cfc1a708c371e93bf8efaed13b39e6de87404c1345f732461829a4488249506f621569abaef992428443d319638ab08dae300bc2d76d38c80a19e7e130476"
+    },
+    {
+      "UserID": "aa6cc8b8-d6a9-456e-b1f3-a29b2d782daa",
+      "Username": "duplicate",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "2b13f575054632b5a4a88aa8520d6448:f9b4971b75d995e0353bede6cf18945f4598a8a296a2a5f15409d9d12212fd94bf0962a260300fb355046d8b266587ac1d408600f738961d4648031f4e3661eb"
+    },
+    {
+      "UserID": "b2b3236a-3d12-4320-9a46-a9f1d11bd6bc",
+      "Username": "logintest",
+      "Email": "",
+      "AuthProvider": "local",
+      "PasswordHash": "8b7b68c543c30cb5d1b107fbb374cca5:11ecbd8c2810c00205bf31aaeed97ece5ceafde38c88d014a765e5ad4d883b7a2818607db51107c92ab01d35055d4388d27242cc10565330df5b39e740cd6d27"
+    }
+  ],
+  "games": [
+    {
+      "GameID": "assault-cube",
+      "title": "AssaultCube",
+      "developer": "AssaultCube Team",
+      "genres": [
+        "FPS",
+        "Multiplayer",
+        "Free to Play"
+      ],
+      "sDescript": "A small multiplayer FPS based on the Cube engine.",
+      "lDescript": "AssaultCube is a free, open-source first-person shooter game based on the Cube engine. It features fast-paced multiplayer gameplay with low system requirements. Perfect for quick matches with friends or jumping into public servers.",
+      "s3": [
+        "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/AssaultCube_Logo.png/220px-AssaultCube_Logo.png"
+      ]
+    },
+    {
+      "GameID": "super-tux-kart",
+      "title": "SuperTuxKart",
+      "developer": "SuperTuxKart Team",
+      "genres": [
+        "Racing",
+        "Arcade",
+        "Free to Play"
+      ],
+      "sDescript": "An open-source arcade racing game with fun characters and tracks.",
+      "lDescript": "SuperTuxKart is a 3D open-source arcade racer inspired by the Mario Kart series. Play as Tux and friends across various tracks with power-ups, drift mechanics, and multiplayer support. Features dozens of characters, tracks, and karts.",
+      "s3": [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/SuperTuxKart_screenshot.png/320px-SuperTuxKart_screenshot.png"
+      ]
+    },
+    {
+      "GameID": "freedoom",
+      "title": "Freedoom",
+      "developer": "Freedoom Team",
+      "genres": [
+        "FPS",
+        "Retro",
+        "Free to Play"
+      ],
+      "sDescript": "A free alternative to the original Doom with new levels and assets.",
+      "lDescript": "Freedoom is a free, open-source alternative to the original Doom. It features completely original levels, graphics, sounds, and music. Play through multiple episodes including Phase 1 (6 levels) and Phase 2 (21 levels) with classic Doom-style gameplay.",
+      "s3": [
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Freedoom_logo.png/220px-Freedoom_logo.png"
+      ]
+    }
+  ]
+}

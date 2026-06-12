@@ -304,3 +304,8 @@ export async function getGameByAppId(appid: number): Promise<GameRecord | undefi
   await ensureLoaded()
   return storeData!.games.find((g) => g.appid === appid)
 }
+
+export async function resetStore(): Promise<void> {
+  storeData = null
+  writeQueue = Promise.resolve()
+}

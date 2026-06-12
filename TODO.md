@@ -41,12 +41,14 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ## Milestone 3 — Polish (Better UX and developer experience)
 
+**Status: 4/4 tasks done.**
+
 | Status | Task | Notes |
 |--------|------|-------|
-| `[ ]` | Improve sign-in UX for dual-auth mode (local + optional Google) | Clear messaging when Google is unconfigured |
-| `[ ]` | Add route-level tests for `/auth/local/register` and `/auth/local/login` | |
-| `[ ]` | Add integration tests for local auth and Google auth fallback | |
-| `[ ]` | Keep `deploy/README.md` in sync with env/compose changes | Update on every infra change |
+| `[x]` | Improve sign-in UX for dual-auth mode (local + optional Google) | `GET /auth/config` endpoint, clear messaging in UI |
+| `[x]` | Add route-level tests for `/auth/local/register` and `/auth/local/login` | `backend/test/auth.test.ts` — 15 tests |
+| `[x]` | Add integration tests for local auth and Google auth fallback | `backend/test/integration.test.ts` — 7 tests |
+| `[x]` | Keep `deploy/README.md` in sync with env/compose changes | Updated throughout Milestones 1-4 |
 
 ---
 

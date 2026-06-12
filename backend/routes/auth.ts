@@ -3,6 +3,7 @@ import express from "express"
 import {
   ControllerBootstrap,
   ControllerCreateUser,
+  ControllerGetAuthConfig,
   ControllerGetUserByToken,
   ControllerGoogleAuth,
   ControllerLoginLocal,
@@ -17,6 +18,7 @@ import {
 
 const router = express.Router()
 
+router.get("/config", generalRateLimiter, ControllerGetAuthConfig)
 router.post("/bootstrap", loginRateLimiter, ControllerBootstrap)
 router.post("/google", generalRateLimiter, ControllerGoogleAuth)
 router.post("/local/register", registerRateLimiter, ControllerRegisterLocal)

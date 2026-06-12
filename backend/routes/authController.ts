@@ -263,6 +263,22 @@ export const ControllerLogout = async (
   res.status(200).json({ ok: true })
 }
 
+export const ControllerGetAuthConfig = async (
+  _req: Request,
+  res: Response,
+): Promise<void> => {
+  const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID)
+  const whitelistEnabled = process.env.WHITELISTED_USERS
+    ? JSON.parse(process.env.WHITELISTED_USERS).length > 0
+    : false
+
+  res.status(200).json({
+    googleEnabled,
+    whitelistEnabled,
+    localEnabled: true,
+  })
+}
+
 export const ControllerBootstrap = async (
   req: Request,
   res: Response,
