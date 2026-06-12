@@ -173,3 +173,59 @@ export async function deleteGame(gameId: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function downloadGames(appids: number[]): Promise<{ success: boolean; message: string } | null> {
+  try {
+    const response = await fetch(getBackendPath("/games/download"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ appids }),
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error triggering download:", errorText);
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, message: data.message || "Download started" };
+  } catch (error) {
+    console.error("Failed to trigger download:", error);
+    return { success: false, message: "Failed to trigger download" };
+  }
+}
+
+export async function getDownloadStatus(): Promise<{
+  downloading: boolean
+  appids: number[]
+  completed: number[]
+  failed: number[]
+  progress: number
+  error?: string
+} | null> {
+  try {
+    const response = await fetch(getBackendPath("/games/download/status"), {
+      method: "GET",
+      headers: {
+        
+      },
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error fetching download status:", errorText);
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch download status:", error);
+    return null;
+  }
+}

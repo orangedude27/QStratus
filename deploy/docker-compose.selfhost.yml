@@ -9,6 +9,7 @@ services:
       - "4000:4000"
     volumes:
       - backend_data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 30s

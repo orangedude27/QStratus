@@ -74,8 +74,8 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | `[x]` | Add hybrid game launch in stratusd (Steam client vs direct exec) | `stratusd/SideCar/src/steam_launcher.c` |
 | `[x]` | Add Proton support to stratusd container | Auto-fetch latest, configurable via env var |
 | `[x]` | Add `IMPLEMENTATION_DETAILS.md` with detailed specs | |
-| `[ ]` | Wire up SteamCMD download trigger from frontend | Backend API exists, needs Docker API integration |
-| `[ ]` | Add download progress UI component | `frontend/src/components/download-progress.tsx` |
+| `[x]` | Wire up SteamCMD download trigger from frontend | `backend/lib/dockerTrigger.ts`, `POST /games/download`, Docker API integration |
+| `[x]` | Add download progress UI component | `frontend/src/components/download-progress.tsx` — polls `/games/download/status` every 3s |
 | `[ ]` | Add Steam game catalog to heartbeat (appid/source fields) | stratusd reports game IDs, backend needs to map to appids |
 | `[ ]` | End-to-end test: scan → claim → download → launch | Requires full stack on Linux |
 

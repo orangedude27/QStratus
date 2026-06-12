@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { RefreshCw, Plus, Download } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { RefreshCw, Plus, Download, CloudDownload } from "lucide-react"
 
 import { ControllerNavigationBoundary } from "@/components/controller-navigation-boundary"
 import { CardContent, CardTitle, CardDescription } from "@/components/ui/card"
@@ -9,8 +9,9 @@ import { HoverCard } from "@/components/ui/hover-card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "@/hooks/use-toast"
+import { DownloadProgress } from "@/components/download-progress"
 
-import { scanSteamGames, getDiscoveredGames, claimGame } from "@/lib/actions/games"
+import { scanSteamGames, getDiscoveredGames, claimGame, downloadGames } from "@/lib/actions/games"
 import { isStaticExport } from "@/lib/static-export"
 import { GameType, DiscoveredGameType, ScanResult } from "@/lib/types"
 
@@ -19,6 +20,9 @@ export default function Discover() {
   const [existing, setExisting] = useState<GameType[]>([])
   const [loading, setLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadAppIds, setDownloadAppIds] = useState<number[]>([])
+  const [claimedAppIds, setClaimedAppIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (isStaticExport) return
@@ -32,6 +36,7 @@ export default function Discover() {
       if (result) {
         setDiscovered(result.discovered)
         setExisting(result.existing)
+        setClaimedAppIds(new Set(result.existing.map((g) => g.appid?.toString() || "")))
       }
     } catch (err) {
       toast({
@@ -51,6 +56,7 @@ export default function Discover() {
       if (result) {
         setDiscovered(result.discovered)
         setExisting(result.existing)
+        setClaimedAppIds(new Set(result.existing.map((g) => g.appid?.toString() || "")))
         toast({
           title: "Scan complete",
           description: `Found ${result.discovered.length} new games, ${result.existing.length} already in catalog.`,
@@ -73,6 +79,7 @@ export default function Discover() {
       if (game) {
         setDiscovered((prev) => prev.filter((g) => g.appid.toString() !== appid))
         setExisting((prev) => [...prev, game])
+        setClaimedAppIds((prev) => new Set([...prev, appid]))
         toast({
           title: "Game added to catalog",
           description: `${game.title} has been added to your library.`,
@@ -87,6 +94,36 @@ export default function Discover() {
     }
   }
 
+  async function handleDownload(appids: number[]) {
+    setDownloading(true)
+    setDownloadAppIds(appids)
+    try {
+      const result = await downloadGames(appids)
+      if (!result || !result.success) {
+        toast({
+          title: "Download failed",
+          description: result?.message || "Could not start download. Make sure SteamCMD is enabled in your deployment.",
+          variant: "destructive",
+        })
+        setDownloadAppIds([])
+      } else {
+        toast({
+          title: "Download started",
+          description: `Downloading ${appids.length} game${appids.length > 1 ? "s" : ""}...`,
+        })
+      }
+    } catch (err) {
+      toast({
+        title: "Download failed",
+        description: "Could not start download. Make sure SteamCMD is enabled in your deployment.",
+        variant: "destructive",
+      })
+      setDownloadAppIds([])
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   function formatSize(bytes: number): string {
     if (bytes === 0) return "Unknown"
     const kb = bytes / 1024
@@ -96,6 +133,8 @@ export default function Discover() {
     const gb = mb / 1024
     return `${gb.toFixed(1)} GB`
   }
+
+  const downloadableAppIds = discovered.map((g) => g.appid)
 
   return (
     <div data-controller-scope='discover'>
@@ -117,8 +156,17 @@ export default function Discover() {
         </div>
 
         <p className='text-muted-foreground mb-8'>
-          Scan your Steam library to discover games. Claim them to add to your catalog.
+          Scan your Steam library to discover games. Claim them to add to your catalog, then download for streaming.
         </p>
+
+        {downloadAppIds.length > 0 && (
+          <div className='mb-8'>
+            <DownloadProgress
+              games={Object.fromEntries(discovered.map((g) => [g.appid, g.name]))}
+              onClear={() => setDownloadAppIds([])}
+            />
+          </div>
+        )}
 
         {loading ? (
           <div className='flex items-center justify-center py-20'>
@@ -138,9 +186,20 @@ export default function Discover() {
           <>
             {discovered.length > 0 && (
               <section className='mb-12'>
-                <h3 className='text-xl font-semibold mb-4'>
-                  New Games ({discovered.length})
-                </h3>
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-xl font-semibold'>
+                    New Games ({discovered.length})
+                  </h3>
+                  <Button
+                    onClick={() => handleDownload(downloadableAppIds)}
+                    disabled={downloading || downloadableAppIds.length === 0}
+                    variant='outline'
+                    size='sm'
+                  >
+                    <CloudDownload className='h-4 w-4 mr-2' />
+                    Download All
+                  </Button>
+                </div>
                 <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4'>
                   {discovered.map((game) => (
                     <div
@@ -155,14 +214,24 @@ export default function Discover() {
                         <CardDescription className='mb-3 line-clamp-2'>
                           {formatSize(game.sizeOnDisk)}
                         </CardDescription>
-                        <Button
-                          onClick={() => handleClaim(game.appid.toString())}
-                          className='w-full'
-                          size='sm'
-                        >
-                          <Plus className='h-4 w-4 mr-1' />
-                          Claim
-                        </Button>
+                        <div className='flex gap-2'>
+                          <Button
+                            onClick={() => handleClaim(game.appid.toString())}
+                            className='flex-1'
+                            size='sm'
+                          >
+                            <Plus className='h-4 w-4 mr-1' />
+                            Claim
+                          </Button>
+                          <Button
+                            onClick={() => handleDownload([game.appid])}
+                            disabled={downloading}
+                            variant='outline'
+                            size='sm'
+                          >
+                            <Download className='h-4 w-4' />
+                          </Button>
+                        </div>
                       </CardContent>
                     </div>
                   ))}

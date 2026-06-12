@@ -7,6 +7,7 @@ import http from "node:http"
 import playRoutes from "./routes/play.js"
 import gamesRoutes from "./routes/games.js"
 import authRoutes from "./routes/auth.js"
+import downloadRoutes from "./routes/download.js"
 
 import { handleMessage } from "./socket/messages.js" //to .js git rebase
 
@@ -28,6 +29,7 @@ app.use(cookieParser())
 app.use("/games", gamesRoutes)
 app.use("/auth", authRoutes)
 app.use("/play", playRoutes)
+app.use("/games", downloadRoutes)
 
 app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime() })
