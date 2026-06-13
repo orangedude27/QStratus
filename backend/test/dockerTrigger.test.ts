@@ -4,8 +4,10 @@ import {
   getDownloadStatus,
 } from "../lib/dockerTrigger.js"
 import { writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 
-const GAMES_FILE = "/tmp/games_to_download.json"
+const GAMES_FILE = join(tmpdir(), "games_to_download.json")
 
 function writeGamesFile(appids: number[]) {
   writeFileSync(GAMES_FILE, JSON.stringify(appids), "utf-8")

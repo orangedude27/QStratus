@@ -24,8 +24,9 @@ export const getTokenFromAuthorizationHeader = (req: Request): string => {
 }
 
 export const verifyAuthToken = (token: string): Token => {
+  const secret = getEnv("AUTH_SECRET")
   try {
-    return jwt.verify(token, getEnv("AUTH_SECRET")) as Token
+    return jwt.verify(token, secret) as Token
   } catch {
     throw new Error("Invalid or expired token")
   }

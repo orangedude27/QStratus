@@ -83,7 +83,7 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ## Test Suite — Remaining Work
 
-**Current coverage: 159 backend tests (134 passing + 25 new passing + 9 pre-existing failures)**
+**Current coverage: 294 backend tests (all passing) + 20 frontend tests (all passing) + 58 stratusd tests (all passing) + 44 shell tests (all passing)**
 
 | Status | Task | File | Notes |
 |--------|------|------|-------|
@@ -91,11 +91,14 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | `[x]` | Test `ControllerBootstrap` — first-boot admin creation | `backend/test/auth.test.ts` | Already existed (15 tests total) |
 | `[x]` | Test `ControllerGetAuthConfig` — returns enabled flags | `backend/test/auth.test.ts` | Already existed |
 | `[x]` | Test `dockerTrigger.ts` — Docker API module | `backend/test/dockerTrigger.test.ts` | 16 tests, all passing |
-| `[~]` | Test `steam_launcher.c` — Steam client launch logic | `stratusd/test/steam_launcher.test.c` | 14 tests written, requires cmocka |
-| `[~]` | Test `download-progress.tsx` — frontend progress UI | `frontend/tests/download-progress.test.tsx` | 6 tests written, requires React Testing Library |
-| `[~]` | Test `discover/page.tsx` — discover page flow | `frontend/tests/discover-page.test.tsx` | 13 tests written, requires React Testing Library |
-| `[~]` | Test `steamcmd/entrypoint.sh` — download script | `deploy/steamcmd/test/entrypoint.test.sh` | 17 tests written, has manual fallback runner |
-| `[ ]` | Fix 9 pre-existing test failures | Various | See RESUME.md for details |
+| `[x]` | Test `authController.ts` — register, login, bootstrap | `backend/test/authController.test.ts` | 37 tests, all passing |
+| `[x]` | Test `authToken.ts` — JWT verification | `backend/test/authToken.test.ts` | 13 tests, all passing |
+| `[x]` | Test `playController.ts` — session/node routes | `backend/test/playController.test.ts` | 21 tests, all passing |
+| `[x]` | Test `steam_launcher.c` — Steam client launch logic | `stratusd/test/run_steam_launcher_tests.mjs` | 58 tests, all passing (source analysis) |
+| `[x]` | Test `download-progress.tsx` — frontend progress UI | `frontend/tests/download-progress.test.tsx` | 6 tests, all passing (vitest setup) |
+| `[x]` | Test `discover/page.tsx` — discover page flow | `frontend/tests/discover-page.test.tsx` | 14 tests, all passing (vitest setup) |
+| `[x]` | Test `steamcmd/entrypoint.sh` — download script | `deploy/steamcmd/test/run_entrypoint_tests.mjs` | 44 tests, all passing (source analysis) |
+| `[x]` | Fix 9 pre-existing test failures | Various | See RESUME.md for details |
 
 ---
 

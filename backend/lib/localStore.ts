@@ -30,8 +30,16 @@ type StoreData = {
   games: GameRecord[]
 }
 
-const dataFilePath = process.env.DATA_FILE || path.resolve(process.cwd(), "storage", "store.json")
-const seedGamesPath = process.env.SEED_GAMES_FILE || path.resolve(process.cwd(), "data", "games.json")
+const defaultDataFilePath = path.resolve(process.cwd(), "storage", "store.json")
+const defaultSeedGamesPath = path.resolve(process.cwd(), "data", "games.json")
+
+function getDataFilePath(): string {
+  return process.env.DATA_FILE || defaultDataFilePath
+}
+
+function getSeedGamesPath(): string {
+  return process.env.SEED_GAMES_FILE || defaultSeedGamesPath
+}
 
 let storeData: StoreData | null = null
 let writeQueue = Promise.resolve()
@@ -46,12 +54,12 @@ const pathExists = async (target: string) => {
 }
 
 const readSeedGames = async (): Promise<GameRecord[]> => {
-  if (!(await pathExists(seedGamesPath))) {
+  if (!(await pathExists(getSeedGamesPath()))) {
     return []
   }
 
   try {
-    const content = await readFile(seedGamesPath, "utf8")
+    const content = await readFile(getSeedGamesPath(), "utf8")
     const parsed = JSON.parse(content)
     if (!Array.isArray(parsed)) {
       return []
@@ -68,13 +76,13 @@ const persist = async () => {
     return
   }
 
-  const dir = path.dirname(dataFilePath)
+  const dir = path.dirname(getDataFilePath())
   await mkdir(dir, { recursive: true })
 
   // Serialize writes to avoid store corruption during concurrent requests.
   writeQueue = writeQueue.then(async () => {
     try {
-      await writeFile(dataFilePath, JSON.stringify(storeData, null, 2), "utf8")
+      await writeFile(getDataFilePath(), JSON.stringify(storeData, null, 2), "utf8")
     } catch (err) {
       console.error("Failed to persist store:", err)
     }
@@ -88,10 +96,10 @@ const ensureLoaded = async () => {
     return
   }
 
-  const dir = path.dirname(dataFilePath)
+  const dir = path.dirname(getDataFilePath())
   await mkdir(dir, { recursive: true })
 
-  if (!(await pathExists(dataFilePath))) {
+  if (!(await pathExists(getDataFilePath()))) {
     storeData = {
       users: [],
       games: await readSeedGames(),
@@ -100,7 +108,7 @@ const ensureLoaded = async () => {
     return
   }
 
-  const raw = await readFile(dataFilePath, "utf8")
+  const raw = await readFile(getDataFilePath(), "utf8")
   let parsed: Partial<StoreData>
 
   try {

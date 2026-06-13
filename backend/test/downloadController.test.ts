@@ -18,7 +18,7 @@ describe("POST /games/download", () => {
 
   beforeEach(async () => {
     vi.resetModules()
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 
@@ -103,7 +103,7 @@ describe("GET /games/download/status", () => {
 
   beforeEach(async () => {
     vi.resetModules()
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 

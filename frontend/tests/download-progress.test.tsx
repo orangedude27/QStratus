@@ -1,48 +1,47 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { getDownloadStatus } from "@/lib/actions/games"
-
-vi.mock("@/lib/actions/games", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/actions/games")>(
-    "@/lib/actions/games",
-  )
-  return {
-    ...actual,
-    getDownloadStatus: vi.fn(),
-  }
-})
 
 vi.mock("@/lib/static-export", () => ({
   isStaticExport: false,
 }))
 
 describe("getDownloadStatus", () => {
-  const GamesActions = await import("@/lib/actions/games")
-  const mockGetDownloadStatus = GamesActions.getDownloadStatus as ReturnType<
-    typeof vi.fn
-  >
+  let getDownloadStatus: () => Promise<unknown>
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
+    vi.resetModules()
+    const mod = await import("@/lib/actions/games")
+    getDownloadStatus = mod.getDownloadStatus
   })
 
   it("should return download status data when API succeeds", async () => {
-    const mockData = {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        downloading: true,
+        appids: [730, 440],
+        completed: [730],
+        failed: [],
+        progress: 50,
+      }),
+    })
+
+    const result = await getDownloadStatus()
+
+    expect(result).toEqual({
       downloading: true,
       appids: [730, 440],
       completed: [730],
       failed: [],
       progress: 50,
-    }
-    mockGetDownloadStatus.mockResolvedValue(mockData)
-
-    const result = await getDownloadStatus()
-
-    expect(result).toEqual(mockData)
-    expect(mockGetDownloadStatus).toHaveBeenCalledTimes(1)
+    })
   })
 
   it("should return null when API returns null", async () => {
-    mockGetDownloadStatus.mockResolvedValue(null)
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(null),
+    })
 
     const result = await getDownloadStatus()
 
@@ -50,7 +49,7 @@ describe("getDownloadStatus", () => {
   })
 
   it("should return null when API call fails", async () => {
-    mockGetDownloadStatus.mockRejectedValue(new Error("Network error"))
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"))
 
     const result = await getDownloadStatus()
 
@@ -58,14 +57,16 @@ describe("getDownloadStatus", () => {
   })
 
   it("should return idle status when nothing is downloading", async () => {
-    const mockData = {
-      downloading: false,
-      appids: [],
-      completed: [],
-      failed: [],
-      progress: 0,
-    }
-    mockGetDownloadStatus.mockResolvedValue(mockData)
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        downloading: false,
+        appids: [],
+        completed: [],
+        failed: [],
+        progress: 0,
+      }),
+    })
 
     const result = await getDownloadStatus()
 
@@ -75,15 +76,17 @@ describe("getDownloadStatus", () => {
   })
 
   it("should include error in status when present", async () => {
-    const mockData = {
-      downloading: false,
-      appids: [730],
-      completed: [],
-      failed: [730],
-      progress: 100,
-      error: "Download failed",
-    }
-    mockGetDownloadStatus.mockResolvedValue(mockData)
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        downloading: false,
+        appids: [730],
+        completed: [],
+        failed: [730],
+        progress: 100,
+        error: "Download failed",
+      }),
+    })
 
     const result = await getDownloadStatus()
 
@@ -92,14 +95,16 @@ describe("getDownloadStatus", () => {
   })
 
   it("should return completed games list", async () => {
-    const mockData = {
-      downloading: false,
-      appids: [730, 440, 570],
-      completed: [730, 440],
-      failed: [],
-      progress: 67,
-    }
-    mockGetDownloadStatus.mockResolvedValue(mockData)
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        downloading: false,
+        appids: [730, 440, 570],
+        completed: [730, 440],
+        failed: [],
+        progress: 67,
+      }),
+    })
 
     const result = await getDownloadStatus()
 

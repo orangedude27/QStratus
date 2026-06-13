@@ -57,7 +57,7 @@ describe("GET /games", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 
@@ -83,7 +83,7 @@ describe("GET /games/:id", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 
@@ -112,7 +112,7 @@ describe("POST /games/scan", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
     app = createApp()
@@ -154,7 +154,7 @@ describe("GET /games/discovered", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
     app = createApp()
@@ -180,7 +180,7 @@ describe("POST /games/discovered/:appid/claim", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     setSteamLibraryPath(TEST_LIBRARY_DIR)
     await setupLibrary()
     app = createApp()
@@ -226,7 +226,7 @@ describe("POST /games", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 
@@ -269,7 +269,7 @@ describe("DELETE /games/:id", () => {
   let testEnv: ReturnType<typeof setupTestEnv>
 
   beforeEach(async () => {
-    testEnv = setupTestEnv()
+    testEnv = await setupTestEnv()
     app = createApp()
   })
 

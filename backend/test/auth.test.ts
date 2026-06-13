@@ -9,7 +9,7 @@ let authRoutes: any
 
 beforeEach(async () => {
   vi.resetModules()
-  testEnv = setupTestEnv()
+  testEnv = await setupTestEnv()
   const authModule = await import("../routes/auth.js")
   authRoutes = authModule.default
   app = express()

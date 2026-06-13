@@ -26,7 +26,7 @@ export function parseAcfFile(content: string): DiscoveredGame | null {
 
   const lines = content.split("\n")
   for (const line of lines) {
-    const trimmed = line.trim()
+    const trimmed = line.trim().replace(/\r$/, "")
     const match = trimmed.match(/^"(\w+)"\s+"(.+)"$/)
     if (match) {
       result[match[1]] = match[2]

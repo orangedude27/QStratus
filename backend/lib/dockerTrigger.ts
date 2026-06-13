@@ -1,11 +1,12 @@
 import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
+import { tmpdir } from "node:os"
 
 const DOCKER_SOCKET = process.env.DOCKER_SOCKET || "/var/run/docker.sock"
 const STEAMCMD_CONTAINER = "qstratus_steamcmd"
 const STEAMCMD_IMAGE = "qstratus_steamcmd"
 const SHARED_VOLUME = "qstratus_steam_data"
-const GAMES_FILE = "/tmp/games_to_download.json"
+const GAMES_FILE = join(tmpdir(), "games_to_download.json")
 
 type DownloadResult = {
   success: boolean

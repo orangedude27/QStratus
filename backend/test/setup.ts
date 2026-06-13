@@ -1,9 +1,18 @@
-import { unlink } from "fs/promises"
+import { unlink, access } from "fs/promises"
 import path from "path"
 import { clearStore } from "../lib/rateLimiter.js"
 import { resetStore } from "../lib/localStore.js"
 
-export const setupTestEnv = () => {
+const ensureDeleted = async (file: string) => {
+  try {
+    await access(file)
+    await unlink(file)
+  } catch {
+    // File doesn't exist, nothing to do
+  }
+}
+
+export const setupTestEnv = async () => {
   const testDir = path.resolve(process.cwd(), "test")
   const dataFile = path.join(testDir, "test_store.json")
   const seedFile = path.join(process.cwd(), "data", "games.json")
@@ -17,6 +26,7 @@ export const setupTestEnv = () => {
 
   clearStore()
   resetStore()
+  await ensureDeleted(dataFile)
 
   return { dataFile, seedFile }
 }
