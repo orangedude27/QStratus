@@ -135,7 +135,7 @@ export async function getDownloadStatus(): Promise<DownloadStatus> {
       completed,
       failed,
       progress: 100,
-      error: inspect.State.Error || undefined,
+      error: (inspect.State as Record<string, string>).Error || undefined,
     }
   }
 

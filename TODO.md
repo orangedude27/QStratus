@@ -1,6 +1,6 @@
 # QStratus Project TODO
 
-Last updated: 2026-06-11
+Last updated: 2026-06-13 (Session 10)
 
 Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` deferred
 
@@ -24,18 +24,30 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 
 ## Milestone 2 — Hardening (Safe to expose on a home network)
 
-**Status: 6/7 tasks done. 1 task requires actual Linux testing.**
+**Status: 7/7 tasks done.**
 
 | Status | Task | Notes |
 |--------|------|-------|
 | `[x]` | Add rate-limiting and brute-force protections to local auth endpoints | `backend/lib/rateLimiter.ts` — login: 20/15min, register: 5/hr, general: 100/15min |
 | `[x]` | Remove `// @ts-nocheck` from `backend/lib/localStore.ts` | Done as part of Milestone 4 |
 | `[x]` | Add schema validation for local store reads/writes | `backend/lib/storeValidation.ts` — validates on load, auto-recovers corrupt data |
-| `[ ]` | Harden stratusd container permissions (reduce `privileged` scope) | Requires testing each device binding |
+| `[x]` | Harden stratusd container permissions (reduce `privileged` scope) | `deploy/docker-compose.nvidia.yml` — NVIDIA runtime override replaces privileged mode |
 | `[x]` | Add optional reverse proxy config examples (TLS + UDP) | `deploy/nginx/qstratus.conf`, `deploy/caddy/Caddyfile`, `deploy/REVERSE_PROXY.md` |
-| `[x]` | Document vendor-specific GPU passthrough guidance (AMD/Intel/NVIDIA) | In `deploy/README.md` |
+| `[x]` | Document vendor-specific GPU passthrough guidance (AMD/Intel/NVIDIA) | In `deploy/README.md` — AMD/Intel default, NVIDIA optional |
 | `[x]` | Add troubleshooting section for auth/session failures | In `deploy/README.md` — covers login, bootstrap, session, rate limiting |
 | `[x]` | Add troubleshooting section for WebTransport/UDP failures | In `deploy/README.md` — covers QUIC, latency, audio, input issues |
+
+---
+
+## Milestone 2.5 — GPU Validation & Testing
+
+**Status: 3/3 tasks done.**
+
+| Status | Task | Notes |
+|--------|------|-------|
+| `[x]` | Create GPU detection script | `deploy/gpu-detect.sh` — detects vendor, validates encoding, guides setup |
+| `[x]` | Create end-to-end validation script | `deploy/scripts/validate-gpu.sh` — full stack + GPU check with --quick mode |
+| `[x]` | Add NVIDIA runtime override (optional) | `deploy/docker-compose.nvidia.yml` — replaces privileged mode with scoped GPU access |
 
 ---
 
@@ -99,6 +111,21 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | `[x]` | Test `discover/page.tsx` — discover page flow | `frontend/tests/discover-page.test.tsx` | 14 tests, all passing (vitest setup) |
 | `[x]` | Test `steamcmd/entrypoint.sh` — download script | `deploy/steamcmd/test/run_entrypoint_tests.mjs` | 44 tests, all passing (source analysis) |
 | `[x]` | Fix 9 pre-existing test failures | Various | See RESUME.md for details |
+| `[x]` | GPU validation script (Linux host only) | `deploy/scripts/validate-gpu.sh` | Validates Docker, GPU, encoding, passthrough |
+| `[x]` | GPU detection script (Linux host only) | `deploy/gpu-detect.sh` | Detects vendor, validates encoding capability |
+
+---
+
+## Dockerfile Fixes (Session 10)
+
+**Status: 4/4 tasks done.**
+
+| Status | Task | Notes |
+|--------|------|-------|
+| `[x]` | Fix backend Dockerfile — COPY paths, tsconfig build issue | Switched to `tsx` runtime, added `.dockerignore`, fixed `tsconfig.build.json` |
+| `[x]` | Fix frontend Dockerfile — pnpm frozen-lockfile mismatch | Changed to `--no-frozen-lockfile` |
+| `[x]` | Fix stratusd Dockerfile — package names, missing deps | Fixed libgl1/libasound2 package names, added FFmpeg/ICU dev libs, fixed `fcntl.h` in `steam_launcher.c` |
+| `[~]` | Resolve ICU version mismatch in libquiche | Pre-built `libquiche.a` compiled with ICU 78, Ubuntu 24.04 has ICU 74 — requires Bazel rebuild from source (blocked) |
 
 ---
 
@@ -109,3 +136,36 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[-]` def
 | `[-]` | Replace JSON file store with SQLite | Easier queries, same local-only footprint |
 | `[-]` | Add multi-node scheduling for stratusd instances | Currently single-node only |
 | `[-]` | Add keyboard/mouse input pipeline support | Controller-only for now by design |
+
+---
+
+## Dockerfile Fixes (Session 11)
+
+**Status: 5/5 tasks done.**
+
+| Status | Task | Notes |
+|--------|------|-------|
+| `[x]` | Build stratusd on Arch Linux (ICU 78 compatible) | Successfully built on Arch with ICU 78.3 |
+| `[x]` | Update stratusd Dockerfile for Ubuntu 24.04 | Fixed package names, added ICU linking |
+| `[x]` | Fix cjson dependency (local install workaround) | Built cJSON from source, installed to ~/local |
+| `[x]` | Fix steam_launcher.c fcntl.h include | Added `#include <fcntl.h>` |
+| `[x]` | Update libquiche CMakeLists.txt | Restored to use pre-built libquiche.a |
+
+**Key finding:** The pre-built `libquiche.a` was compiled with ICU 78. Arch Linux has ICU 78.3, so it works. Ubuntu 24.04 has ICU 74, which causes linker errors. The fix is to either rebuild libquiche from source with system ICU, or use a base image with ICU 78+.
+
+**Current status:** stratusd builds successfully on Arch Linux. Docker build on Ubuntu 24.04 still has ICU mismatch — needs either a custom base image or rebuilding libquiche from source.
+
+---
+
+## Dockerfile Fixes (Session 12)
+
+**Status: 4/4 tasks done.**
+
+| Status | Task | Notes |
+|--------|------|-------|
+| `[x]` | Switch stratusd Dockerfile to Arch Linux base image | `archlinux:base` — matches ICU 78.3, resolves ICU mismatch |
+| `[x]` | Fix cjson detection in CMakeLists.txt | Use `pkg_check_modules` for `libcjson` (Arch provides pkg-config) |
+| `[x]` | Fix Proton download syntax in Dockerfile | Extracted to `scripts/install-proton.sh` to avoid shell escaping issues |
+| `[x]` | Update SideCar CMakeLists.txt | Changed `CJSON::CJSON` to `PkgConfig::CJSON` |
+
+**Result:** stratusd Docker image builds successfully on Arch Linux base. All dependencies resolved.

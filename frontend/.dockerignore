@@ -1,0 +1,8 @@
+node_modules
+.next
+dist
+test
+*.test.ts
+*.test.js
+*.test.tsx
+.env

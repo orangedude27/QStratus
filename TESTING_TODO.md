@@ -4,6 +4,72 @@ Comprehensive test coverage gaps across all layers of the project.
 
 ---
 
+## Session Log — 2026-06-13 (Session 12)
+
+Switched stratusd Dockerfile from Ubuntu 24.04 to Arch Linux base image (`archlinux:base`) to resolve ICU version mismatch. The pre-built libquiche.a requires ICU 78, which Arch Linux provides (78.3).
+
+### Dockerfile Changes
+
+| File | Change |
+|------|--------|
+| `stratusd/Dockerfile` | Switched to `archlinux:base`, updated packages to pacman, extracted Proton download to script |
+| `stratusd/CMakeLists.txt` | Changed cjson detection to `pkg_check_modules(LIBCJSON)` |
+| `stratusd/SideCar/CMakeLists.txt` | Updated to use `PkgConfig::CJSON` |
+| `stratusd/scripts/install-proton.sh` | Created — Proton download script (avoids shell escaping issues) |
+
+### Build Result
+
+stratusd Docker image builds successfully on Arch Linux base. All dependencies resolved.
+
+---
+
+## Session Log — 2026-06-13 (Session 10)
+
+Fixed Dockerfile build issues across all three components. Backend and frontend now build successfully. stratusd blocked by ICU version mismatch in pre-built libquiche.
+
+### Dockerfile Fixes
+
+| File | Fix |
+|------|-----|
+| `backend/Dockerfile` | Fixed COPY paths (`./` suffix), switched to `tsx` runtime (avoids TypeScript compilation), added `.dockerignore` |
+| `frontend/Dockerfile` | Changed `--frozen-lockfile` to `--no-frozen-lockfile` (pnpm overrides mismatch) |
+| `stratusd/Dockerfile` | Fixed package names (`libgl1-mesa-glx` → `libgl1`, `libasound2` → `libasound2t64`, `liblm-sensors-dev` → `libsensors-dev`), added FFmpeg/ICU dev libs |
+| `stratusd/SideCar/src/steam_launcher.c` | Added `#include <fcntl.h>` for `O_WRONLY`/`open()` |
+| `stratusd/CMakeLists.txt` | Added `icuuc icui18n icudata` linking for libquiche ICU dependency |
+| `backend/.dockerignore` | Created — excludes node_modules, test files, dist |
+| `frontend/.dockerignore` | Created — excludes node_modules, .next, test files |
+| `backend/tsconfig.build.json` | Created — build-specific tsconfig excluding test files |
+
+### Known Issue: ICU Version Mismatch
+
+Pre-built `stratusd/libs/libquiche/dist/libquiche.a` was compiled with ICU 78. Ubuntu 24.04 ships ICU 74. Debian trixie has ICU 76. No available base image has ICU 78.
+
+**Fix:** Rebuild libquiche from source using Bazel with system ICU. This is a significant undertaking requiring Bazel installation and build configuration.
+
+---
+
+## Session Log — 2026-06-13 (Session 9)
+
+Added GPU validation tooling for Linux host testing:
+
+### New Validation Scripts
+
+| File | Description |
+|------|-------------|
+| `deploy/gpu-detect.sh` | GPU vendor detection + encoding validation (NVIDIA/AMD/Intel) |
+| `deploy/scripts/validate-gpu.sh` | End-to-end Linux stack + GPU validation (Docker, kernel modules, passthrough, encoding) |
+| `deploy/docker-compose.nvidia.yml` | NVIDIA Container Toolkit override — replaces `privileged: true` with scoped GPU access |
+
+### Changes
+
+| File | Change |
+|------|--------|
+| `deploy/README.md` | Restructured GPU section — AMD/Intel default, NVIDIA optional |
+| `deploy/env/stratusd.env.example` | Added `STRATUSD_GPU_BACKEND` env var option |
+| `TODO.md` | Milestone 2.5 added, hardening task marked complete |
+
+---
+
 ## Session Log — 2026-06-12 (Session 8)
 
 Analyzed full test coverage across all layers. Identified 416 tests passing, mapped all untested modules by priority.
@@ -376,3 +442,56 @@ bash entrypoint.test.sh
 # Or install shunit2 for full test runner:
 apt-get install shunit2
 ```
+
+### GPU / Linux Host Validation (requires Linux)
+```bash
+# Quick GPU detection:
+./deploy/gpu-detect.sh
+
+# Full stack validation (skip slow tests with --quick):
+./deploy/scripts/validate-gpu.sh
+./deploy/scripts/validate-gpu.sh --quick
+```
+
+These scripts validate:
+- Docker Engine + Compose plugin
+- GPU detection (NVIDIA/AMD/Intel)
+- Kernel modules and device nodes (/dev/dri, /dev/uinput)
+- VAAPI/NVENC encoding capability
+- Docker GPU passthrough
+- FFmpeg hardware encoder availability
+- Compose file configuration
+
+---
+
+## Session Log — 2026-06-13 (Session 11)
+
+Successfully built stratusd on Arch Linux. The pre-built libquiche.a links against ICU 78, which is available on Arch (78.3) but not on Ubuntu 24.04 (74).
+
+### Key Findings
+
+| Issue | Status | Notes |
+|-------|--------|-------|
+| ICU version mismatch | Resolved on Arch | Arch has ICU 78.3, Ubuntu 24.04 has ICU 74 |
+| stratusd build on Arch | Working | Built successfully with pre-built libquiche.a |
+| stratusd build on Ubuntu 24.04 | Blocked | Needs ICU 78 or rebuilt libquiche |
+| cjson dependency | Workaround | Built from source, installed to ~/local |
+
+### Build Verification
+
+```bash
+# stratusd binary links against ICU 78
+$ ldd stratusd/build/stratusd | grep icu
+    libicuuc.so.78 => /usr/lib/libicuuc.so.78
+    libicuio.so.78 => /usr/lib/libicuio.so.78
+    libicudata.so.78 => /usr/lib/libicudata.so.78
+    libicui18n.so.78 => /usr/lib/libicui18n.so.78
+```
+
+### Dockerfile Status
+
+The stratusd Dockerfile has been updated with correct package names for Ubuntu 24.04, but the ICU mismatch remains. Options:
+
+1. **Rebuild libquiche from source** with system ICU (complex, requires Bazel or CMake)
+2. **Use Arch-based Docker image** (simpler, but larger image)
+3. **Patch pre-built libquiche.a** to remove ICU-dependent code (risky)

@@ -1,13 +1,67 @@
 # QStratus — Session Resume Guide
 
-**Session date:** 2026-06-12
-**Last action:** Added stratusd + shell test runners — 294 backend + 20 frontend + 58 stratusd + 44 shell tests passing
+**Session date:** 2026-06-13
+**Last action:** Fixed Dockerfile build issues (backend/frontend build, stratusd blocked by ICU mismatch)
 
 ---
 
-## What Was Being Done
+## Session 10 — Dockerfile Fixes
 
-The session was building out the **Steam Integration** feature (Milestones 1-4) and writing a comprehensive test suite. All code implementation is complete.
+### What Was Done
+
+Fixed Dockerfile build issues across all three components. Backend and frontend now build successfully. stratusd blocked by ICU version mismatch in pre-built libquiche.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `backend/Dockerfile` | Fixed COPY paths (`./` suffix), switched to `tsx` runtime (avoids TypeScript compilation), removed tsconfig.build.json |
+| `frontend/Dockerfile` | Changed `--frozen-lockfile` to `--no-frozen-lockfile` |
+| `stratusd/Dockerfile` | Fixed package names (`libgl1-mesa-glx` → `libgl1`, `libasound2` → `libasound2t64`, `liblm-sensors-dev` → `libsensors-dev`), added FFmpeg/ICU dev libs |
+| `stratusd/SideCar/src/steam_launcher.c` | Added `#include <fcntl.h>` for `O_WRONLY`/`open()` |
+| `stratusd/CMakeLists.txt` | Added `icuuc icui18n icudata` linking for libquiche ICU dependency |
+| `backend/.dockerignore` | Created — excludes node_modules, test files, dist |
+| `frontend/.dockerignore` | Created — excludes node_modules, .next, test files |
+| `backend/tsconfig.build.json` | Created — build-specific tsconfig excluding test files |
+
+### Known Issue: ICU Version Mismatch
+
+Pre-built `stratusd/libs/libquiche/dist/libquiche.a` was compiled with ICU 78. Ubuntu 24.04 ships ICU 74. Debian trixie has ICU 76. No available base image has ICU 78.
+
+**Fix needed:** Rebuild libquiche from source using Bazel with system ICU. This is a significant undertaking requiring Bazel installation and build configuration.
+
+---
+
+## Session 9 — GPU Validation
+
+### What Was Being Done
+
+Added GPU validation and testing infrastructure for the Linux self-host stack:
+
+### New Files Created
+
+| File | Description |
+|------|-------------|
+| `deploy/gpu-detect.sh` | GPU vendor detection script — identifies NVIDIA/AMD/Intel, validates encoding, guides setup |
+| `deploy/scripts/validate-gpu.sh` | End-to-end Linux stack validation — Docker, GPU, kernel modules, passthrough, encoding, compose config |
+| `deploy/docker-compose.nvidia.yml` | NVIDIA Container Toolkit override — replaces `privileged: true` with scoped GPU access |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `deploy/README.md` | Restructured GPU section — AMD/Intel default (no extra setup), NVIDIA optional via override file |
+| `deploy/env/stratusd.env.example` | Added `STRATUSD_GPU_BACKEND` env var (vaapi/nvenc) |
+| `TODO.md` | Milestone 2.5 added, Milestone 2 marked 7/7 complete, validation tasks added |
+| `TESTING_TODO.md` | Session 9 log added, GPU validation section in "How to Run Tests" |
+
+### Key Changes
+
+1. **NVIDIA runtime is now optional** — default compose works for AMD/Intel via `/dev/dri` mount
+2. **NVIDIA override file** — `docker-compose.nvidia.yml` replaces `privileged: true` with scoped GPU access
+3. **GPU detection script** — `gpu-detect.sh` identifies vendor and validates encoding capability
+4. **Validation script** — `validate-gpu.sh` runs full stack checks (Docker, GPU, passthrough, encoding)
+5. **Milestone 2 complete** — "Harden stratusd container permissions" marked done (NVIDIA override provides scoped access)
 
 **Tests written in this session:**
 1. `backend/test/downloadController.test.ts` — 9 tests, all passing ✓
@@ -287,3 +341,102 @@ The next logical step is either:
 2. **Set up test frameworks** for remaining test files (cmocka, React Testing Library, shunit2)
 3. **Linux host validation** (end-to-end flow testing)
 4. **stratusd hardening** (heartbeat appid fields, container permissions)
+
+---
+
+## Session 11 — Build stratusd on Arch Linux
+
+### What Was Done
+
+Successfully built stratusd on Arch Linux where ICU 78.3 is available. The pre-built libquiche.a links against ICU 78 symbols, which are present on Arch but not on Ubuntu 24.04 (ICU 74).
+
+### Key Findings
+
+1. **ICU version mismatch is the root cause** — pre-built libquiche.a expects ICU 78, Ubuntu 24.04 has ICU 74
+2. **Arch Linux works** — has ICU 78.3, so the pre-built libquiche.a links correctly
+3. **Docker on Ubuntu 24.04 still broken** — needs either:
+   - Custom base image with ICU 78+
+   - Rebuild libquiche from source with system ICU
+   - Use Arch-based Docker image
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `stratusd/CMakeLists.txt` | Added ICU linking, fixed cjson to use find_library |
+| `stratusd/SideCar/CMakeLists.txt` | Updated to use CJSON::CJSON target |
+| `stratusd/Dockerfile` | Fixed package names, added ICU linking |
+| `stratusd/libs/libquiche/CMakeLists.txt` | Restored to use pre-built libquiche.a |
+| `stratusd/SideCar/src/steam_launcher.c` | Added `#include <fcntl.h>` |
+
+### Build Command (Arch Linux)
+
+```bash
+cd stratusd/build
+cmake .. -DCMAKE_BUILD_TYPE=Release \
+    -DCJSON_LIBRARY=$HOME/local/lib/libcjson.so \
+    -DCJSON_INCLUDE_DIR=$HOME/local/include
+cmake --build . -j$(nproc)
+```
+
+### Next Steps
+
+1. For Docker: Either rebuild libquiche from source with system ICU, or use an Arch-based Docker image
+2. For local development: stratusd builds and runs on Arch Linux
+
+---
+
+## Session 12 — Arch Linux Docker Base Image
+
+### What Was Done
+
+Switched stratusd Dockerfile from Ubuntu 24.04 to Arch Linux base image (`archlinux:base`) to resolve ICU version mismatch. The pre-built libquiche.a requires ICU 78, which Arch Linux provides (78.3).
+
+### Key Changes
+
+1. **Dockerfile base image** — Changed from `ubuntu:24.04` to `archlinux:base`
+2. **Package installation** — Updated from apt to pacman package manager
+3. **cjson detection** — Changed from `find_library/find_path` to `pkg_check_modules` (Arch provides libcjson.pc)
+4. **Proton download** — Extracted to `scripts/install-proton.sh` to avoid shell escaping issues with Docker's `/bin/sh`
+5. **SideCar CMakeLists.txt** — Updated to use `PkgConfig::CJSON` instead of `CJSON::CJSON`
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `stratusd/Dockerfile` | Switched to `archlinux:base`, updated packages, extracted Proton download to script |
+| `stratusd/CMakeLists.txt` | Changed cjson detection to `pkg_check_modules(LIBCJSON)` |
+| `stratusd/SideCar/CMakeLists.txt` | Updated to use `PkgConfig::CJSON` |
+| `stratusd/scripts/install-proton.sh` | Created — Proton download script (avoids shell escaping issues) |
+
+### Build Result
+
+stratusd Docker image builds successfully on Arch Linux base. All dependencies resolved.
+
+### Package Mapping (Ubuntu → Arch)
+
+| Ubuntu Package | Arch Package |
+|----------------|--------------|
+| `build-essential` | `base-devel` |
+| `libcjson-dev` | `cjson` |
+| `libcurl4-openssl-dev` | `libcurl` (built-in) |
+| `libdrm-dev` | `libdrm` |
+| `libegl1-mesa-dev` | `libglvnd` |
+| `libevdev-dev` | `libevdev` |
+| `libexpat1-dev` | `expat` |
+| `libgles2-mesa-dev` | `mesa` |
+| `libicu-dev` | `icu` |
+| `libsensors-dev` | `lm_sensors` |
+| `libopus-dev` | `opus` |
+| `libpipewire-0.3-dev` | `pipewire` |
+| `pkg-config` | `pkgconf` |
+| `ffmpeg` + dev libs | `ffmpeg` |
+| `wine` | `wine` |
+| `libgl1` + `libgl1:i386` | `mesa` |
+| `libasound2t64` + `libasound2t64:i386` | `alsa-lib` |
+
+### Next Steps
+
+1. Test stratusd container with GPU passthrough on Linux host
+2. Verify end-to-end self-host flow with Arch-based stratusd
+3. Update deploy documentation for Arch-based container

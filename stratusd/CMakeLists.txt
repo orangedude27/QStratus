@@ -13,7 +13,9 @@ find_package(PipeWire REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBEVDEV REQUIRED libevdev)
 pkg_check_modules(LIBCURL REQUIRED IMPORTED_TARGET libcurl)
-pkg_search_module(LIBCJSON REQUIRED libcjson)
+
+pkg_check_modules(CJSON REQUIRED IMPORTED_TARGET libcjson)
+
 pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
     libavcodec
     libavformat
@@ -22,6 +24,7 @@ pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET
 pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
 find_package(OpenGL COMPONENTS GLES3 EGL REQUIRED)
 find_package(Sensors REQUIRED)
+find_package(ICU REQUIRED COMPONENTS uc io data)
 
 add_subdirectory(Common)
 add_subdirectory(Capture)
@@ -37,7 +40,11 @@ target_include_directories(stratusd PUBLIC ${CMAKE_BINARY_DIR})
 
 # Link modules here
 target_link_libraries(stratusd PRIVATE "-Wl,--exclude-libs,ALL" Capture
-    CapturePw Encode Input SideCar Transport)
+    CapturePw Encode Input SideCar Transport
+    PkgConfig::CJSON
+    ICU::uc
+    ICU::io
+    ICU::data)
 
 # Get version from git
 execute_process(

@@ -18,11 +18,48 @@ The backend persists users and games in a local JSON file volume.
 
 1. Docker Engine + Compose plugin installed
 2. GPU drivers available on host and GPU device exposed at `/dev/dri`
-3. `/dev/uinput` available and writable by container (compose uses privileged mode)
+3. `/dev/uinput` available for controller input passthrough
 4. Firewall allows:
-   - TCP `3000` (frontend)
-   - TCP `4000` (backend)
-   - UDP `4433` (stratusd WebTransport default)
+    - TCP `3000` (frontend)
+    - TCP `4000` (backend)
+    - UDP `4433` (stratusd WebTransport default)
+
+## GPU Support
+
+QStratus defaults to AMD/Intel GPUs via `/dev/dri` passthrough (VAAPI encoding).
+NVIDIA GPU support is optional and requires the NVIDIA Container Toolkit.
+
+**Detect your GPU before deploying:**
+```bash
+./deploy/gpu-detect.sh
+```
+
+**Validate the full stack before deploying:**
+```bash
+./deploy/scripts/validate-gpu.sh
+# Skip slow tests:
+./deploy/scripts/validate-gpu.sh --quick
+```
+
+### AMD / Intel (default)
+
+The default compose configuration works out of the box:
+- Uses `/dev/dri` device mount for VAAPI hardware encoding
+- No additional runtime configuration needed
+- Works with Mesa drivers on modern Linux distros
+
+### NVIDIA (optional)
+
+For NVIDIA GPUs, use the NVIDIA Container Toolkit override:
+
+```bash
+# Install NVIDIA Container Toolkit (see GPU Passthrough Guide below)
+# Then start with the NVIDIA override:
+docker compose -f docker-compose.selfhost.yml -f docker-compose.nvidia.yml up -d --build
+```
+
+The NVIDIA override replaces `privileged: true` with scoped GPU access via the
+NVIDIA runtime, which is more secure. See `deploy/docker-compose.nvidia.yml`.
 
 ## 1) Prepare env files
 
@@ -152,67 +189,59 @@ docker compose -f deploy/docker-compose.selfhost.yml ps
 
 ## GPU Passthrough Guide
 
-stratusd requires GPU access for video encoding. The compose file passes `/dev/dri` to the container. Here's vendor-specific guidance:
+stratusd requires GPU access for video encoding. The default compose configuration uses `/dev/dri` passthrough which works for AMD and Intel GPUs out of the box. NVIDIA GPUs require the optional NVIDIA Container Toolkit override.
 
-### NVIDIA
+### AMD / Intel (default — no extra setup)
 
-1. Install NVIDIA drivers on the host:
-   ```bash
-   sudo apt install nvidia-driver-550  # or latest stable
-   ```
-
-2. Install NVIDIA Container Toolkit:
-   ```bash
-   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-   curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-   sudo apt update
-   sudo apt install nvidia-container-toolkit
-   sudo nvidia-ctk runtime configure --runtime=docker
-   sudo systemctl restart docker
-   ```
-
-3. Verify GPU access:
-   ```bash
-   docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
-   ```
-
-4. The compose file already includes `/dev/dri` — no changes needed.
-
-### AMD
-
-1. Install AMD drivers (usually pre-installed on modern Linux distros):
-   ```bash
-   sudo apt install mesa-vulkan-drivers amdgpu-core
-   ```
+1. Install Mesa Vulkan drivers (usually pre-installed on modern Linux distros):
+    ```bash
+    sudo apt install mesa-vulkan-drivers
+    ```
 
 2. Verify GPU access:
-   ```bash
-   ls -la /dev/dri/
-   # Should show: card0, renderD128, etc.
-   ```
+    ```bash
+    ls -la /dev/dri/
+    # Should show: card0, renderD128, etc.
+    ```
 
 3. Add your user to the `video` and `render` groups:
-   ```bash
-   sudo usermod -aG video,youruser $USER
-   sudo usermod -aG render,youruser $USER
-   ```
+    ```bash
+    sudo usermod -aG video,youruser $USER
+    sudo usermod -aG render,youruser $USER
+    ```
 
 4. The compose file already includes `/dev/dri` — no changes needed.
 
-### Intel
+### NVIDIA (optional — requires Container Toolkit)
 
-1. Install Intel GPU drivers:
-   ```bash
-   sudo apt install intel-media-va-driver-non-free vainfo
-   ```
+1. Install NVIDIA drivers on the host:
+    ```bash
+    sudo apt install nvidia-driver-550  # or latest stable
+    ```
 
-2. Verify GPU access:
-   ```bash
-   vainfo
-   # Should show supported VA APIs
-   ```
+2. Install NVIDIA Container Toolkit:
+    ```bash
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    sudo apt update
+    sudo apt install nvidia-container-toolkit
+    sudo nvidia-ctk runtime configure --runtime=docker
+    sudo systemctl restart docker
+    ```
 
-3. The compose file already includes `/dev/dri` — no changes needed.
+3. Verify GPU access:
+    ```bash
+    docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+    ```
+
+4. Start with the NVIDIA override:
+    ```bash
+    docker compose -f docker-compose.selfhost.yml -f docker-compose.nvidia.yml up -d --build
+    ```
+
+The NVIDIA override (`deploy/docker-compose.nvidia.yml`) replaces `privileged: true`
+with scoped GPU access via the NVIDIA runtime. This is more secure than privileged
+mode as it only exposes GPU devices without full host access.
 
 ### Testing GPU Acceleration
 
